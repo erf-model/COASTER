@@ -5,6 +5,9 @@
 # zero, and reconstructs it as f(t) ~= 2*f1 - f2. With two substeps per
 # exchange the weights are 2 on f1 and 0 on f2, so the interval mean is f1
 # exactly. A lane that is not averaged keeps the interval-end sample, f2.
+# rain is left out: it is weighted per ERF step rather than by the trapezoid
+# (see "The rain lane" in Exec/README.md), so the reconstruction does not
+# apply to it.
 #
 # Both references come from non-averaged runs: one substep per exchange writes
 # f1, two substeps per exchange write f2. Coupling is forced one-way, so ERF's
@@ -13,7 +16,7 @@
 # its reference at zero tolerance.
 #
 # What the check can distinguish depends on the build. Without RRTMGP,
-# radiation is off and rain, SWrad, LWrad, Qair and cloud are constant over the
+# radiation is off and SWrad, LWrad, Qair and cloud are constant over the
 # first two steps of this deck, so for those lanes f1 = f2 and a wrong weight
 # would go unnoticed. With RRTMGP (ERF_REMORA_RRTMGP_DIR set) SWrad and LWrad
 # vary as well.
@@ -77,9 +80,9 @@ else()
 endif()
 
 # Lane vocabularies and characters, from Source/ERFRemoraCouplingContract.H.
-set(_flux_lanes_flux_contract tau_x tau_y SHflux LHflux SWrad LWrad rain evap)
+set(_flux_lanes_flux_contract tau_x tau_y SHflux LHflux SWrad LWrad evap)
 set(_state_lanes_state_contract Uwind Vwind Patm Qair Tair cloud)
-set(_flux_lanes_state_contract rain SWrad LWrad)
+set(_flux_lanes_state_contract SWrad LWrad)
 
 function(_run _tag)
   set(_log "${_work_dir}/${_tag}.log")

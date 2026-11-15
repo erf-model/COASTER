@@ -266,15 +266,45 @@ Atmos->ocean lane provenance (configured mode=state)
 
 Each lane resolves in order: one the deck configured explicitly stays with
 REMORA; otherwise ERF supplies it if ERF's pack fills it; otherwise it is
-withheld and REMORA's own default stands. Today ERF never fills `Qair` or
-`rain`, fills `SWrad`/`LWrad` only with a radiation model, and `cloud` only with
-cloud liquid or ice.
+withheld and REMORA's own default stands. Today ERF never fills `Qair`, fills
+`rain` only with a microphysics scheme that precipitates, `SWrad`/`LWrad` only
+with a radiation model, and `cloud` only with cloud liquid or ice.
+
+### The rain lane
+
+REMORA takes rain as a rate in kg m^-2 s^-1 (1 kg m^-2 s^-1 = 1 mm s^-1 of liquid
+water = 3600 mm/h). ERF's microphysics keeps no surface rate, only cumulative
+surface accumulations per column (`rain_accum`, `snow_accum`, ... in mm, which is
+kg m^-2 of liquid water). So ERF sums them as liquid water, the scheme's total
+where it has one, and on each pack sends the accumulation gained since its
+previous pack divided by the ERF time elapsed since then:
+
+- with averaging off the driver packs once per exchange, so the lane is the
+  exchange interval's mean rate exactly;
+- with either averaging control on it packs after every ERF step, and the driver
+  averages those step rates weighted by step, not by the trapezoid, which gives
+  the same interval mean. The lane is summed this way whenever any averaging is on,
+  since its last step alone would be the last step's rate.
+
+Either way the ocean receives exactly the water the atmosphere rained out over
+the interval. The difference starts from the accumulators at the first ERF step of
+the run, so a restart, whose accumulators come from the checkpoint, loses nothing.
+Snow, graupel and hail are sent as positive rain, since over open water they
+freshen the ocean like rain (REMORA reads negative rain as snow, which ERF never
+sends); REMORA's rain heat flux then treats them as liquid, without the latent
+heat of melting. A scheme without
+precipitation (`Kessler_NoRain`, `SAM_NoPrecip_NoIce`, `SatAdj`, ...) leaves the
+lane to REMORA.
 
 Withholding is how the driver declines a lane, not a failure: REMORA treats any
 non-null lane as authoritative, so a lane of zeros would read as real forcing and
 displace REMORA's own. Withheld lanes also appear during validation as
 `<lane>: withheld (not supplied by ERF)`. The flux contract is exempt — REMORA
-drops the whole apply if any flux lane is null.
+drops the whole apply if any flux lane is null. So with `driver.atm2ocn_mode =
+flux`, `SWrad`, `LWrad` and `rain` reach REMORA from ERF, or as zero where ERF
+computes none, even when the REMORA deck sets its own (`remora.rain_type =
+netcdf`, say), and the table says so; `driver.atm2ocn_lane_source.<lane> = remora`
+on one of them aborts.
 
 `LWrad` gets one extra step: `remora.lwrad_type` defaults to `computed`, under
 which REMORA's bulk fluxes ignore the field entirely, so when that lane resolves
@@ -295,6 +325,9 @@ trapezoidal mean over that same interval:
 - `driver.time_average_atm2ocn_flux = 1` averages `rain`, `SWrad`, `LWrad`,
   `tau_x`, `tau_y`, `SHflux`, `LHflux`, and `evap`.
 
+`rain` is the exception: it is an interval mean under either control, and under
+neither (see [The rain lane](#the-rain-lane)).
+
 Lane character, not `driver.atm2ocn_mode`, selects the control. In particular,
 `rain`, `SWrad`, and `LWrad` follow the flux-lane control even though they also
 appear in the state contract. The controls can be enabled separately or
@@ -306,7 +339,8 @@ On the first interval of a cold start, ERF's diagnostic flux arrays are still
 zero, so the left endpoint is not sampled. It is reconstructed by linear
 extrapolation from the first two substep samples, f(t) = 2 f1 - f2. With two
 substeps per interval the mean is then f1, the interval midpoint, and f2
-carries no weight.
+carries no trapezoid weight. `rain` is weighted per ERF step instead, so the
+reconstruction does not apply to it.
 
 ### Which geometry the remap chose
 
@@ -466,9 +500,9 @@ get a standard-atmosphere value. Every other lane gets zero, or nothing:
 | Patm | 101325 Pa — sea-level standard |
 | Tair | 288.15 K — 15 C, standard |
 | Uwind, Vwind | 0 m/s — calm, not a standard-atmosphere value |
-| Cloud, SWrad, LWrad | literal 0.0 |
+| Cloud, SWrad, LWrad, Rain | literal 0.0 |
 | all eight flux lanes | literal 0.0 |
-| Qair, Rain | not remapped at all; they keep whatever `PrefillAtmosToOceanFallbacks` wrote from `remora.air_humidity` / `remora.rain`, both defaulting to 0.0 |
+| Qair | not remapped at all; withheld, so REMORA's own `remora.air_humidity` stands |
 
 So "forced but not coupled" is true of Patm and Tair. For the wind and flux lanes
 an uncovered cell is neither forced nor coupled. It is also an assignment, not
@@ -896,9 +930,10 @@ ctest --test-dir build -R reproducer_lane_provenance --output-on-failure
   lane at zero tolerance, that every averaged lane of the first exchange
   plotfile holds the atmosphere state after its first substep, and that a lane
   left unaveraged holds the state after its second. It runs every lane averaged
-  in each contract, and the state contract with only the flux flag set. Without
-  RRTMGP, `rain`, `SWrad`, `LWrad`, `Qair` and `cloud` do not change over those
-  two steps, so the test cannot check their weights.
+  in each contract, and the state contract with only the flux flag set. `rain`
+  is not checked, since it is weighted per ERF step. Without RRTMGP, `SWrad`,
+  `LWrad`, `Qair` and `cloud` do not change over those two steps, so the test
+  cannot check their weights.
 
 ```bash
 ctest --test-dir build -R reproducer_cold_start_average --output-on-failure
