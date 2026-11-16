@@ -27,7 +27,7 @@ driver.atm2ocn_mode         = flux
 
 # 1 (REMORA) step at 300s/step = 5 minutes ... 72 hours = 72*60=4320 minutes = 864 steps
 max_step = 864
-start_datetime         = "2025-06-25 11:00:00" # 11am UTC = 4am PDT, which is local time for Oregon summer
+start_datetime         = "2007-07-01 12:00:00" # 12 UTC = 0400 PST (LST), the start time of Perlin et al. (2007)
 
 erf.fixed_dt    = 3.0
 remora.fixed_dt = 300.0
