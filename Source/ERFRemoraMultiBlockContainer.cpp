@@ -1250,8 +1250,8 @@ ERFRemoraMultiBlockContainer::AccumulateAtmosToOcean (amrex::Real weight,
     // which only repeats the previous interval's last rate, and one per ERF step
     // after that. Its mean is then the interval's accumulation over its length.
     AMREX_ALWAYS_ASSERT_WITH_MESSAGE(
-        weight > amrex::Real(0.0) && steps_since_last_sample >= amrex::Real(0.0),
-        "Atmos->ocean averaging sample weight must be positive");
+        weight >= amrex::Real(0.0) && steps_since_last_sample >= amrex::Real(0.0),
+        "Atmos->ocean averaging sample weights must not be negative");
     for (int local_idx = 0;
          local_idx < static_cast<int>(m_atmos_to_ocean_active_indices.size()); ++local_idx) {
         const int global_idx = m_atmos_to_ocean_active_indices[local_idx];
@@ -1259,6 +1259,7 @@ ERFRemoraMultiBlockContainer::AccumulateAtmosToOcean (amrex::Real weight,
         if (accumulator != nullptr) {
             const amrex::Real w = coupling::IsAccumulationRateLane(global_idx)
                                       ? steps_since_last_sample : weight;
+            if (w == amrex::Real(0.0)) { continue; }
             amrex::MultiFab::Saxpy(*accumulator,
                                    w, *m_atmos_to_ocean_active[local_idx],
                                    0, 0, 1, 0);
@@ -4626,7 +4627,10 @@ ERFRemoraMultiBlockContainer::AdvanceBlocksWithCallbacks (const MutableStateFn& 
                 //   n=10 -> 2.0 + 0.5 + 7*1.0 + 0.5 = 10.
                 // At n=2 the last-substep 0.5 and this -0.5 cancel, so f2 drops
                 // out and the mean collapses to f1 -- the interval midpoint,
-                // which is the exact linear answer over [t, t+2*dt]. At n=1 there
+                // which is the exact linear answer over [t, t+2*dt]. f2 then
+                // carries zero trapezoid weight, but it is still packed and
+                // accumulated: the rain lane takes it at its per-step weight, and
+                // non-averaged lanes keep that interval-end sample. At n=1 there
                 // is no f2 to extrapolate from, so the correction is skipped
                 // entirely; DrainAtmosToOceanAccumulators divides by the total
                 // accumulated weight, so that interval degrades cleanly to the
