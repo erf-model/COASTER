@@ -103,6 +103,15 @@ void REMORAPackSurfaceState(void* remora_handle,
                             const amrex::iMultiFab* index_o2a_mf,
                             int max_stencil_size,
                             const amrex::iMultiFab* dst_land_mask = nullptr);
+// REMORA's top-level current, east and north, remapped onto ERF's layout with the
+// SST's weights (REMORA::PackSurfaceCurrents)
+void REMORAPackSurfaceCurrents(void* remora_handle,
+                               amrex::MultiFab& east_dst,
+                               amrex::MultiFab& north_dst,
+                               const amrex::MultiFab* weight_o2a_mf,
+                               const amrex::iMultiFab* index_o2a_mf,
+                               int max_stencil_size,
+                               const amrex::iMultiFab* dst_land_mask);
 // Which atmos->ocean state lanes this run's REMORA deck configured explicitly,
 // as 0/1 in state active-view slot order. Not recoverable from ParmParse: REMORA
 // reads those keys with queryAdd, which materializes the defaults, so it records

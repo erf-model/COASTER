@@ -48,7 +48,14 @@ Atmosphere → ocean:
 `Uwind`, `Vwind`, `Patm`, `Qair`, `Tair`, `cloud`, `rain`, `SWrad`, `LWrad`
 
 Ocean → atmosphere:
-`SST`
+`SST`, and with `driver.couple_currents = true` the surface current `Uoce`/`Voce`
+
+With `driver.couple_currents` (two-way only) the ocean sends its top-level current
+east and north, with the SST's weights and coverage, and ERF takes its surface stress
+from the wind relative to it, as COAWST's WRF does with ROMS's `UOCE`/`VOCE`. The
+driver sets ERF's `erf.use_coupled_currents` itself; setting that alone is an error.
+REMORA's own relative wind (`remora.bulk_flux_relative_wind`) is the state-mode
+counterpart on the ocean side.
 
 The atmosphere -> ocean cache is allocated as a superset layer vector that also
 reserves direct-flux layers (`tau_x`, `tau_y`, `SHflux`, `LHflux`, `evap`)

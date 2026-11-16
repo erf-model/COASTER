@@ -404,6 +404,24 @@ main (int argc, char* argv[])
             amrex::Abort("Unknown driver.coupling_direction. Valid values: ERFtoREMORA, two_way.");
         }
 
+        // The surface current, like the SST, is a two-way lane that ERF has to expect.
+        // ERF's own switch follows the driver's, so that the two cannot disagree: ERF
+        // waiting for a current the driver never sends would abort at the first exchange.
+        {
+            amrex::ParmParse pp_driver_cur("driver");
+            bool couple_currents = false;
+            pp_driver_cur.query("couple_currents", couple_currents);
+            bool erf_coupled_currents = false;
+            pp_erf.query("use_coupled_currents", erf_coupled_currents);
+            if (erf_coupled_currents && !couple_currents) {
+                amrex::Abort("erf.use_coupled_currents is set, but the driver sends no current. "
+                             "Set driver.couple_currents = true instead.");
+            }
+            if (couple_currents && use_two_way_coupling) {
+                pp_erf.add("use_coupled_currents", 1);
+            }
+        }
+
         amrex::Vector<amrex::Real> atm_lo;
         amrex::Vector<amrex::Real> atm_hi;
         amrex::Vector<int> n_cell_atm;
