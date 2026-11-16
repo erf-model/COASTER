@@ -487,23 +487,18 @@ if(ERF_REMORA_ENABLE_TESTS)
   # answer twice: once across rank counts, once across a checkpoint/restart.
   # Both require every other source of run-to-run variation to be absent, so
   # they run the deck's own PBL scheme rather than overriding it, and the deck
-  # scheme has to be one that holds still. erf.pbl_type=MRF does. Measured on
-  # the Upwelling deck: cold vs restarted and np1 vs np4 both fcompare to
-  # exactly zero absolute error on every ERF, REMORA and exchange field.
+  # scheme has to be one that holds still. The deck's scheme is currently
+  # erf.pbl_type=MYNN25 (Exec/Upwelling/inputs_ERF), so these tests exercise
+  # MYNN25's rank and restart reproducibility; any MYNN option the deck turns
+  # on is in their path too.
   #
-  # These tests used to force erf.pbl_type=None, because the deck's previous
-  # scheme, MYNN25, is neither rank- nor restart-reproducible:
-  #
-  #   - across ranks, np1 vs npN is identical at step 0, diverges to 7e-06 in
-  #     Kmv by step 10 and 2.4e-02 (0.37% relative) by step 20, saturating at
-  #     the same magnitude for np2, np4 and np8
-  #   - across restart, cold vs restarted diverges to 1.3 in Kmv (19% relative)
-  #
-  # That is still an open ERF issue and nothing here covers it; it is simply no
-  # longer in the path of these tests. The override also had to supply constant
-  # molecular diffusion, because MOST asserts has_diff (ERF.cpp) and disabling
-  # the PBL scheme removed the only diffusion the deck had. MRF satisfies
-  # has_diff on its own, so the deck's erf.molec_diff_type=None stands.
+  # History: these tests once forced erf.pbl_type=None, because MYNN25 in the
+  # ERF of the time was neither rank- nor restart-reproducible (cold vs
+  # restarted diverged to 1.3 in Kmv, 19% relative). That override also had to
+  # supply constant molecular diffusion, because MOST asserts has_diff
+  # (ERF.cpp). The deck then moved to MRF, which fcompared to exactly zero, and
+  # the override was dropped; the deck has since moved back to MYNN25, which
+  # satisfies has_diff on its own, so erf.molec_diff_type=None stands.
 
   if(FCOMPARE_EXE)
     # Non-integral ocean/atmosphere ratio, with checkpoints at exchange boundaries.
