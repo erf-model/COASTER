@@ -427,24 +427,26 @@ if(ERF_REMORA_ENABLE_TESTS)
 
   # REMORA's surface current must reach ERF's surface layer with
   # driver.couple_currents, and a half-configured run must stop at start-up.
-  add_test(
-    NAME reproducer_coupled_surface_current
-    COMMAND
-      "${CMAKE_COMMAND}"
-      -DERF_REMORA_DRIVER_EXE=${ERF_REMORA_DRIVER_EXE}
-      -DERF_REMORA_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
-      -DERF_REMORA_INPUT_FILE=Exec/Upwelling/inputs_twoway
-      -DFEXTREMA_EXE=${FEXTREMA_EXE}
-      -DFCOMPARE_EXE=${FCOMPARE_EXE}
-      -DERF_REMORA_RRTMGP_DIR=${ERF_REMORA_RRTMGP_DIR}
-      -DERF_REMORA_MAX_STEP=4
-      -P "${ERF_REMORA_SURFACE_CURRENT_TEST_SCRIPT}"
-  )
-  set_tests_properties(reproducer_coupled_surface_current
-    PROPERTIES
-      LABELS "reproducer;coupling"
-      PROCESSORS 1
-  )
+  if(FCOMPARE_EXE)
+    add_test(
+      NAME reproducer_coupled_surface_current
+      COMMAND
+        "${CMAKE_COMMAND}"
+        -DERF_REMORA_DRIVER_EXE=${ERF_REMORA_DRIVER_EXE}
+        -DERF_REMORA_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+        -DERF_REMORA_INPUT_FILE=Exec/Upwelling/inputs_twoway
+        -DFEXTREMA_EXE=${FEXTREMA_EXE}
+        -DFCOMPARE_EXE=${FCOMPARE_EXE}
+        -DERF_REMORA_RRTMGP_DIR=${ERF_REMORA_RRTMGP_DIR}
+        -DERF_REMORA_MAX_STEP=4
+        -P "${ERF_REMORA_SURFACE_CURRENT_TEST_SCRIPT}"
+    )
+    set_tests_properties(reproducer_coupled_surface_current
+      PROPERTIES
+        LABELS "reproducer;coupling"
+        PROCESSORS 1
+    )
+  endif()
 
   # Every atmos->ocean forcing lane must have exactly one source, and the driver
   # must not hand REMORA a lane ERF never wrote. See issue #4.
