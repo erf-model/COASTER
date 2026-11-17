@@ -758,6 +758,11 @@ ERFRemoraMultiBlockContainer::ERFRemoraMultiBlockContainer (
 
     amrex::ParmParse pp_driver("driver");
     pp_driver.query("v", m_driver_verbose);
+    pp_driver.query("couple_currents", m_couple_currents);
+    if (m_couple_currents && !m_use_two_way_coupling) {
+        amrex::Abort("driver.couple_currents sends the ocean's surface current to the atmosphere, "
+                     "which needs driver.coupling_direction = two_way.");
+    }
     pp_driver.query("plot_int_exchange", m_plot_int_exchange);
     pp_driver.query("ocean_time_offset", m_ocean_time_offset);
     pp_driver.query("plot_file_exchange_o2a", m_plot_file_exchange_o2a);
@@ -1018,13 +1023,9 @@ ERFRemoraMultiBlockContainer::InitializeBlocks ()
     SelectAtmosToOceanActiveView();
     if (m_use_two_way_coupling && !m_ocean_to_atmos.empty()) {
         DriverPrintLine(m_driver_verbose, "packing REMORA surface state into ocean->atmos bootstrap cache");
-        const amrex::iMultiFab* erf_is_land_bootstrap = nullptr;
-        ERFGetLandMask(m_erf, &erf_is_land_bootstrap);
-        REMORAPackSurfaceState(m_remora, m_ocean_to_atmos, amrex::Real(0.0),
-                               m_weight_o2a_mf.get(), m_index_o2a_mf.get(), MAX_STENCIL_SIZE,
-                               erf_is_land_bootstrap);
+        PackOceanToAtmos(m_ocean_to_atmos, amrex::Real(0.0));
         AbortOnNonFinite("PackSurfaceState (bootstrap)",
-                         m_ocean_to_atmos, coupling::OceanToAtmosNames());
+                         m_ocean_to_atmos, m_ocean_to_atmos_names);
         FillOceanToAtmosGhosts();
     }
     CheckDebugInjectNaNLane();
@@ -1190,7 +1191,13 @@ ERFRemoraMultiBlockContainer::AllocateCachesFromSolverLayouts ()
     }
 
     if (m_use_two_way_coupling) {
-        m_ocean_to_atmos_storage.resize(coupling::NumOceanToAtmosStates);
+        // The current lanes only when they are coupled, so a run without them
+        // carries, checks and plots the SST alone
+        const int n_o2a = m_couple_currents ? int(coupling::NumOceanToAtmosStates)
+                                            : int(coupling::SST) + 1;
+        m_ocean_to_atmos_names.assign(coupling::OceanToAtmosNames().begin(),
+                                      coupling::OceanToAtmosNames().begin() + n_o2a);
+        m_ocean_to_atmos_storage.resize(n_o2a);
         const amrex::IntVect ocean_to_atmos_ng(1, 1, 0);
         for (int idx = 0; idx < static_cast<int>(m_ocean_to_atmos_storage.size()); ++idx) {
             auto& mf_ptr = m_ocean_to_atmos_storage[idx];
@@ -3606,6 +3613,28 @@ ERFRemoraMultiBlockContainer::FillOceanToAtmosGhosts ()
 }
 
 void
+ERFRemoraMultiBlockContainer::PackOceanToAtmos (amrex::Vector<amrex::MultiFab*>& state,
+                                                amrex::Real time)
+{
+    // ERF land mask on the destination (ERF) layout: zeroes out land cells in
+    // every remapped ocean->atmos lane.
+    const amrex::iMultiFab* erf_is_land = nullptr;
+    ERFGetLandMask(m_erf, &erf_is_land);
+    REMORAPackSurfaceState(m_remora, state, time,
+                           m_weight_o2a_mf.get(), m_index_o2a_mf.get(), MAX_STENCIL_SIZE,
+                           erf_is_land);
+    // The current goes east and north, with the SST's weights; ERF turns it to its
+    // grid axes and reads it where the SST's coverage flag is set.
+    if (m_couple_currents) {
+        AMREX_ALWAYS_ASSERT(state.size() > coupling::Voce &&
+                            state[coupling::Uoce] != nullptr && state[coupling::Voce] != nullptr);
+        REMORAPackSurfaceCurrents(m_remora, *state[coupling::Uoce], *state[coupling::Voce],
+                                  m_weight_o2a_mf.get(), m_index_o2a_mf.get(), MAX_STENCIL_SIZE,
+                                  erf_is_land);
+    }
+}
+
+void
 ERFRemoraMultiBlockContainer::FillAtmosToOceanGhosts ()
 {
     AMREX_ALWAYS_ASSERT_WITH_MESSAGE(
@@ -3808,7 +3837,7 @@ void
 ERFRemoraMultiBlockContainer::CheckDebugInjectNaNLane () const
 {
     if (m_debug_inject_nan_lane.empty()) { return; }
-    const auto& o2a = coupling::OceanToAtmosNames();
+    const auto& o2a = m_ocean_to_atmos_names;
     const bool is_o2a = m_use_two_way_coupling &&
         std::find(o2a.begin(), o2a.end(), m_debug_inject_nan_lane) != o2a.end();
     const bool is_a2o =
@@ -3873,7 +3902,7 @@ ERFRemoraMultiBlockContainer::WriteExchangePlotfiles (amrex::Real o2a_time,
     // in which both sides move together.
     if (m_use_two_way_coupling) {
         ValidateFields("Exchange validation ocean->atmos",
-                       m_ocean_to_atmos, coupling::OceanToAtmosNames(), o2a_time, ocean_step,
+                       m_ocean_to_atmos, m_ocean_to_atmos_names, o2a_time, ocean_step,
                        true);
     }
     ValidateFields("Exchange validation atmos->ocean",
@@ -3883,7 +3912,7 @@ ERFRemoraMultiBlockContainer::WriteExchangePlotfiles (amrex::Real o2a_time,
     if (m_use_two_way_coupling) {
         WriteExchangePlotfile(m_plot_file_exchange_o2a,
                               m_ocean_to_atmos,
-                              coupling::OceanToAtmosNames(),
+                              m_ocean_to_atmos_names,
                               m_geom,
                               o2a_time,
                               o2a_time,
@@ -4068,16 +4097,10 @@ ERFRemoraMultiBlockContainer::AdvanceBlocks (int ocean_steps)
         [this](amrex::Vector<amrex::MultiFab*>& state, amrex::Real time,
                long long /*ocean_step*/) {
             BL_PROFILE("Driver::Pack_Surface");
-            // ERF land mask on the destination (ERF) layout: zeroes out
-            // land cells in the remapped ocean->atmos SST.
-            const amrex::iMultiFab* erf_is_land = nullptr;
-            ERFGetLandMask(m_erf, &erf_is_land);
-            REMORAPackSurfaceState(m_remora, state, time,
-                                  m_weight_o2a_mf.get(), m_index_o2a_mf.get(), MAX_STENCIL_SIZE,
-                                  erf_is_land);
+            PackOceanToAtmos(state, time);
 
-            MaybeInjectDebugNaN(state, coupling::OceanToAtmosNames(), false);
-            AbortOnNonFinite("PackSurfaceState", state, coupling::OceanToAtmosNames());
+            MaybeInjectDebugNaN(state, m_ocean_to_atmos_names, false);
+            AbortOnNonFinite("PackSurfaceState", state, m_ocean_to_atmos_names);
         },
         [this](const amrex::Vector<amrex::MultiFab*>& state, amrex::Real time,
                long long /*ocean_step*/) {
@@ -4465,7 +4488,7 @@ ERFRemoraMultiBlockContainer::AdvanceBlocksWithCallbacks (const MutableStateFn& 
     BL_PROFILE("Driver::Build_Comm_Metadata");
     if (m_use_two_way_coupling) {
         PrintDiagnostics("Initial ocean->atmos cache", m_ocean_to_atmos,
-                         coupling::OceanToAtmosNames(), true);
+                         m_ocean_to_atmos_names, true);
     }
     PrintDiagnostics("Initial atmos->ocean cache", m_atmos_to_ocean_active,
                      m_atmos_to_ocean_active_names, false);
@@ -4588,7 +4611,11 @@ ERFRemoraMultiBlockContainer::AdvanceBlocksWithCallbacks (const MutableStateFn& 
             const amrex::Real atm_time = m_atm_tick * m_erf_dt;
 
             BL_PROFILE("Driver::Time_Interpolate");
-            if (m_use_two_way_coupling) {
+            // Once per exchange: the ocean state does not change between the
+            // substeps, and ERF keeps what it is given (the SST and the current
+            // are held in ERF's own arrays, which its surface layer reads every
+            // step). A time-interpolated ocean state would need every substep.
+            if (m_use_two_way_coupling && substep == 0) {
                 DriverPrintLine(
                     m_driver_verbose,
                     std::string("atm_tick=") + std::to_string(m_atm_tick) +
@@ -4704,7 +4731,7 @@ ERFRemoraMultiBlockContainer::AdvanceBlocksWithCallbacks (const MutableStateFn& 
 
         if (m_use_two_way_coupling) {
             PrintDiagnostics("Ocean->atmos cache", m_ocean_to_atmos,
-                             coupling::OceanToAtmosNames(), true);
+                             m_ocean_to_atmos_names, true);
         }
         PrintDiagnostics("Atmos->ocean cache", m_atmos_to_ocean_active,
                          m_atmos_to_ocean_active_names, false);

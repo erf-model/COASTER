@@ -364,6 +364,8 @@ if(ERF_REMORA_ENABLE_TESTS)
       "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_mpi_upwelling_compare.cmake")
   set(ERF_REMORA_SST_COVERAGE_TEST_SCRIPT
       "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_coupled_sst_coverage.cmake")
+  set(ERF_REMORA_SURFACE_CURRENT_TEST_SCRIPT
+      "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_coupled_surface_current.cmake")
   set(ERF_REMORA_LANE_PROVENANCE_TEST_SCRIPT
       "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_lane_provenance.cmake")
   set(ERF_REMORA_NONFINITE_GUARDS_TEST_SCRIPT
@@ -417,6 +419,29 @@ if(ERF_REMORA_ENABLE_TESTS)
         -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_cold_start_average.cmake"
     )
     set_tests_properties(reproducer_cold_start_average
+      PROPERTIES
+        LABELS "reproducer;coupling"
+        PROCESSORS 1
+    )
+  endif()
+
+  # REMORA's surface current must reach ERF's surface layer with
+  # driver.couple_currents, and a half-configured run must stop at start-up.
+  if(FCOMPARE_EXE)
+    add_test(
+      NAME reproducer_coupled_surface_current
+      COMMAND
+        "${CMAKE_COMMAND}"
+        -DERF_REMORA_DRIVER_EXE=${ERF_REMORA_DRIVER_EXE}
+        -DERF_REMORA_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+        -DERF_REMORA_INPUT_FILE=Exec/Upwelling/inputs_twoway
+        -DFEXTREMA_EXE=${FEXTREMA_EXE}
+        -DFCOMPARE_EXE=${FCOMPARE_EXE}
+        -DERF_REMORA_RRTMGP_DIR=${ERF_REMORA_RRTMGP_DIR}
+        -DERF_REMORA_MAX_STEP=4
+        -P "${ERF_REMORA_SURFACE_CURRENT_TEST_SCRIPT}"
+    )
+    set_tests_properties(reproducer_coupled_surface_current
       PROPERTIES
         LABELS "reproducer;coupling"
         PROCESSORS 1

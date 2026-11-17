@@ -59,6 +59,15 @@ namespace erf_remora::coupling
 //    0   SST     SST            surface tracer at         sst_lev and/or                         K in this driver
 //                                Temp_comp (top cell);     lsm.Get_Data_Ptr(lev,0)
 //                                no dedicated vec_sst
+//    1   Uoce    UOCE           top-level u, v rotated    SurfaceLayer surface current           m s^-1
+//                                to east (PackSurface-     (ApplyOceanSurfaceState state[1])
+//                                Currents)
+//    2   Voce    VOCE           likewise, north           likewise (state[2])                    m s^-1
+//
+// Uoce and Voce exist only with driver.couple_currents; otherwise the run has the SST lane
+// alone. They are the surface current at ERF's cell centres, east and north like the
+// atmosphere->ocean vectors, remapped with the SST's weights and handed over with its
+// coverage flag; ERF turns them to its grid axes and takes the wind relative to them.
 //
 // Location and frame:
 // - Every atmosphere->ocean lane crosses at cell centres (REMORA rho points).
@@ -109,6 +118,7 @@ namespace erf_remora::coupling
 //
 // Ocean->atmosphere state:
 //  - Sea-surface temperature: SST [K]
+//  - With driver.couple_currents, the eastward and northward surface current: Uoce, Voce [m s^-1]
 //
 // Coupling mode note:
 // - Runtime toggle: ParmParse `driver.atm2ocn_mode = state|flux`.
@@ -151,6 +161,8 @@ enum AtmosToOceanIndex : int {
 
 enum OceanToAtmosIndex : int {
     SST = 0,
+    Uoce,   // eastward surface current, with driver.couple_currents only
+    Voce,   // northward surface current, likewise
     NumOceanToAtmosStates
 };
 
@@ -267,7 +279,7 @@ inline const AtmosToOceanLaneSpec& AtmosToOceanLane (int global_idx)
 
 inline const amrex::Vector<std::string>& OceanToAtmosNames ()
 {
-    static const amrex::Vector<std::string> names {"SST"};
+    static const amrex::Vector<std::string> names {"SST", "Uoce", "Voce"};
     return names;
 }
 } // namespace erf_remora::coupling
