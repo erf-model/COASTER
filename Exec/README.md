@@ -135,6 +135,53 @@ show up here. Use `inputs_OCCAMS_oneway` for that.
 Status: committed but not yet run. Treat the first execution as a test of the
 deck as much as of the code.
 
+### `OCCAMS/inputs_OCCAMS_rotcheck_state`, `OCCAMS/inputs_OCCAMS_rotcheck_flux`
+
+Purpose:
+
+- Check that the vectors crossing the exchange are turned between the grid axes
+  correctly. The WRF/ERF and ROMS/REMORA grids differ by up to 5.4 degrees over
+  the OCCAMS ocean (`compare_grid_angles.py` maps it). Winds and stress cross as
+  east/north: ERF turns them from its grid axes with its lat/lon, and REMORA
+  turns them onto its own axes with its `angle`. The surface current goes the
+  other way.
+- Each includes `inputs_OCCAMS_state` or `inputs_OCCAMS_flux` and runs three
+  ocean steps. It writes the exchange plotfiles, ERF's grid-axis and
+  earth-relative 10 m winds, and REMORA's NetCDF history (which needs a NetCDF
+  or PnetCDF build). The flux deck also sets `driver.couple_currents = true`.
+
+Run each like its base deck, then in its run directory:
+
+```bash
+python3 check_rotation.py --run . \
+    --wrfinput /pscratch/sd/k/kehinson/oracle/OCCAMS_for_Seahorce/base_drag_202108/wrfinput_d01
+```
+
+`check_rotation.py` (numpy, scipy, netCDF4) reports:
+
+1. Whether REMORA's turning is exact: the exchanged east/north winds (state)
+   or stress (flux, made kinematic and averaged to the faces) against what
+   REMORA applied.
+2. ERF's earth-relative 10 m wind against its grid wind turned with WRF's own
+   `COSALPHA`/`SINALPHA`.
+3. End to end (state): the direction of the wind REMORA applied, turned back to
+   east/north, minus ERF's, against ROMS `angle` minus WRF alpha. The slope is
+   0 if the vectors are turned correctly, +1 if not turned, and -1 if turned the
+   wrong way.
+4. The same slope for the surface current (flux, with `driver.couple_currents`).
+
+Run on 2026-11-18, from the code of #43 and #49:
+
+- **Check 1:** exact, to roundoff, for the winds and the stress. The fitted
+  stress scale was -1/rho0.
+- **Check 2:** a direction difference of at most 0.068 degrees.
+- **Check 3:** slope +0.03 over about 170,000 points.
+- **Check 4:** slope +0.004 ± 0.009 over 216,090 points.
+
+The small check-3 slope, about 0.2 degrees across the whole range of the angle
+difference, comes from the remap and the position of the points, not the
+rotation: check 1 is exact.
+
 ---
 
 #### OCCAMS notes, common to all four
