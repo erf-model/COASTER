@@ -114,6 +114,13 @@ remora.gls_stability_type     = canuto_a   # reference used Kantha-Clayson, not 
 remora.horizontal_mixing_type = "constant" # [112,182]
 remora.tracer_horizontal_advection_scheme = "upstream3"   # ocean.in Hadvection U3  [99]
 
+# Shortwave absorbed over depth, not all in the top cell: CPP SOLAR_SOURCE [232], with the
+# water type of ocean.in WTYPE = 1, Jerlov I [133]. The shortwave is ERF's RRTMGP net
+# shortwave, from the flux contract. Needs REMORA with seahorce-scidac/REMORA#898; an older
+# REMORA ignores both keys silently.
+remora.shortwave_penetration = true
+remora.jerlov_type           = I
+
 # Climatology nudging: ocean.in L*CLM and Lnudge*CLM all T, 30-day scales from base [139,145,147]
 remora.nc_clim_his_file   = "/global/cfs/cdirs/m4304/jmsexton/OCCAM/pnetcdf_compat/OCCAMS_clm_v7_merc_202108_64bit.nc"
 remora.nc_clim_coeff_file = "/global/cfs/cdirs/m4304/jmsexton/OCCAM/pnetcdf_compat/oneyear_nudge_64bit.nc"
