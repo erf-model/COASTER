@@ -123,14 +123,6 @@ set(REMORA_ENABLE_PNETCDF ${REMORA_ENABLE_PNETCDF} CACHE BOOL "" FORCE)
 option(ERF_ENABLE_PNETCDF "Enable PNETCDF" ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Submodules/ERF/CMake")
-# ERF's CrayDetection.cmake sets AMReX_CUDA_ARCH on Cray, and SetERFCompileFlags.cmake
-# then calls set_cuda_architectures, which AMReX removed (AMReX #4773). Until ERF
-# drops that call, supply it: it only turns AMReX_CUDA_ARCH (8.0) into 80.
-if(ERF_REMORA_GPU_BACKEND STREQUAL "CUDA" AND NOT COMMAND set_cuda_architectures)
-  macro(set_cuda_architectures _var)
-    string(REPLACE "." "" AMREX_CUDA_ARCHS "${${_var}}")
-  endmacro()
-endif()
 add_subdirectory(Submodules/ERF erf-build)
 add_subdirectory(Submodules/REMORA remora-build)
 
