@@ -23,12 +23,22 @@
 # NoahmpTable.TBL and the FILE= base decks from there. Plot and checkpoint
 # output is turned off. Logs go to $OUT.
 #
-# Boxes: the deck's amr.max_grid_size of 64 gives 120 ERF and 108 REMORA boxes, so
-# at 256 ranks about half the ranks would have none, and the 1-thread point would
-# measure idle ranks rather than MPI-vs-OpenMP. The sweep uses 32 instead: 20 x 24 =
-# 480 ERF boxes (637 x 754) and 18 x 24 = 432 REMORA boxes (563 x 751), at least
-# one per rank at every point. Every point uses the same size, so the decomposition
-# doesn't change across the sweep. Set MAX_GRID=64 to time the deck as written.
+# Boxes: the driver sets amr.no_box_split_dir = 2 and AMReX's refine_grid_layout is
+# on in x and y, so AMReX splits each domain into ceil(n_cell/max_grid_size) nearly
+# equal pieces per direction, then doubles the pieces in the direction with the
+# longest ones until there are at least as many boxes as ranks
+# (AmrMesh::MakeBaseGridsNoBoxSplit). The summary's erf_boxes and rem_boxes columns
+# give the layout each run gets.
+#
+# MAX_GRID picks the size:
+#   32 (default)  the same layout at every point: 20 x 24 = 480 ERF boxes
+#                 (637 x 754) and 18 x 24 = 432 REMORA boxes (563 x 751), from about
+#                 2 boxes per rank at 256 ranks to 30 at 16.
+#   per_rank      exactly one ERF box per rank: the ranks are factored as nx x ny,
+#                 with the boxes as close to square as the factors allow, and
+#                 max_grid_size_x/y = ceil(n_cell/n). REMORA, sharing the setting,
+#                 gets at least one box per rank too.
+#   any integer   that size for both x and y; 64 is the deck as written.
 #
 # Tiles: on CPU, AMReX hands OpenMP threads one tile at a time. The deck sets
 # fabarray.mfiter_tile_size = 1024 1024 1024, so each box is one tile and threads
@@ -47,7 +57,7 @@
 #   EXE          driver executable (required)
 #   DECK         inputs file in Exec/OCCAMS (default inputs_OCCAMS_maximal_1day)
 #   THREADS      thread counts to sweep (default "1 2 4 8 16")
-#   MAX_GRID     amr.max_grid_size_x/y for ERF and REMORA (default 32)
+#   MAX_GRID     amr.max_grid_size_x/y: an integer, or per_rank (default 32)
 #   TILE         horizontal fabarray.mfiter_tile_size, "x y" (default: the deck's)
 #   MAX_STEP     ocean steps per run (default 40; 40 x 15 s = 10 min, 60 ERF steps)
 #   RUN_MINUTES  wall limit per run, so one slow run can't use up the job (default 5)
@@ -92,6 +102,61 @@ for f in "$OCCAMS_DIR/$DECK" "$OCCAMS_DIR/namelist.erf" \
          "$OCCAMS_DIR/NoahmpTable.TBL"; do
     [ -e "$f" ] || { echo "missing: $f" >&2; exit 1; }
 done
+case $MAX_GRID in
+    per_rank) ;;
+    ''|*[!0-9]*) echo "MAX_GRID must be an integer or per_rank, got: $MAX_GRID" >&2; exit 1 ;;
+esac
+
+# Horizontal n_cell of a code, from the first of the deck and its base decks that
+# sets it.
+ncell_xy () {
+    local f
+    for f in "$OCCAMS_DIR/$DECK" "$OCCAMS_DIR/inputs_ERF" "$OCCAMS_DIR/inputs_REMORA"; do
+        awk -v k="$1" '$1 == k && $2 == "=" { x = $3; y = $4 } END { if (x) print x, y }' "$f" \
+            | grep . && return 0
+    done
+    echo "no $1 in $DECK, inputs_ERF or inputs_REMORA" >&2
+    return 1
+}
+ERF_XY=$(ncell_xy erf.n_cell)    || exit 1
+REM_XY=$(ncell_xy remora.n_cell) || exit 1
+read -r ERF_NX ERF_NY <<< "$ERF_XY"
+read -r REM_NX REM_NY <<< "$REM_XY"
+
+# Boxes AMReX makes for a domain lx x ly at max_grid_size mx x my on r ranks, as
+# "px py" (see Boxes above).
+boxes () {
+    awk -v lx="$1" -v ly="$2" -v mx="$3" -v my="$4" -v r="$5" 'BEGIN {
+        px = int((lx + mx - 1) / mx); py = int((ly + my - 1) / my)
+        while (px * py < r) {
+            dir = -1; longest = 1
+            if (int(lx / px) > longest) { dir = 0; longest = int(lx / px) }
+            if (int(ly / py) > longest) { dir = 1 }
+            if (dir < 0) break
+            if (dir == 0) px *= 2; else py *= 2
+        }
+        print px, py
+    }'
+}
+
+# max_grid_size "mx my" that gives exactly one ERF box per rank: the factorization
+# nx x ny = r whose boxes are closest to square, among those AMReX reproduces.
+grid_per_rank () {
+    local r=$1 nx ny mx my bx by best="" score bscore=""
+    for ((nx = 1; nx <= r; nx++)); do
+        [ $((r % nx)) -eq 0 ] || continue
+        ny=$((r / nx))
+        mx=$(((ERF_NX + nx - 1) / nx)); my=$(((ERF_NY + ny - 1) / ny))
+        read -r bx by <<< "$(boxes "$ERF_NX" "$ERF_NY" "$mx" "$my" "$r")"
+        [ "$bx" -eq "$nx" ] && [ "$by" -eq "$ny" ] || continue
+        score=$(awk -v a="$mx" -v b="$my" 'BEGIN { x = log(a / b); print (x < 0 ? -x : x) }')
+        if [ -z "$bscore" ] || awk -v s="$score" -v b="$bscore" 'BEGIN { exit !(s < b) }'; then
+            best="$mx $my"; bscore=$score
+        fi
+    done
+    [ -n "$best" ] || { echo "no max_grid_size gives one ERF box on each of $r ranks" >&2; return 1; }
+    echo "$best"
+}
 
 mkdir -p "$OUT"
 SUMMARY=$OUT/summary.txt
@@ -100,7 +165,7 @@ cd "$OCCAMS_DIR"
 echo "driver : $EXE ($(date -r "$EXE" '+%Y-%m-%d %H:%M:%S'))"
 echo "deck   : $OCCAMS_DIR/$DECK"
 echo "nodes  : $NNODES ($TOTAL_CORES cores)  threads: $THREADS  max_step: $MAX_STEP"
-echo "grid   : amr.max_grid_size_x/y = $MAX_GRID"
+echo "grid   : amr.max_grid_size_x/y = $MAX_GRID  (ERF $ERF_NX x $ERF_NY, REMORA $REM_NX x $REM_NY)"
 if [ -n "$TILE" ]; then
     echo "tiles  : fabarray.mfiter_tile_size = ${tile[0]} ${tile[1]} 1024000"
 else
@@ -126,8 +191,9 @@ stamp () {
     done
 }
 
-printf '%-8s %-6s %-8s %-10s %-10s %-12s %-10s %s\n' \
-    threads ranks exit wall_s init_s s_per_exch tinyprof note > "$SUMMARY"
+printf '%-8s %-6s %-9s %-9s %-9s %-6s %-10s %-10s %-12s %-10s %s\n' \
+    threads ranks max_grid erf_boxes rem_boxes exit wall_s init_s s_per_exch tinyprof note \
+    > "$SUMMARY"
 
 for t in $THREADS; do
     ranks=$((TOTAL_CORES / t))
@@ -137,17 +203,27 @@ for t in $THREADS; do
     fi
     log=$OUT/out_t${t}_n${ranks}.txt
 
+    if [ "$MAX_GRID" = per_rank ]; then
+        mg=$(grid_per_rank "$ranks") || continue
+        read -r mgx mgy <<< "$mg"
+    else
+        mgx=$MAX_GRID; mgy=$MAX_GRID
+    fi
+    read -r ebx eby <<< "$(boxes "$ERF_NX" "$ERF_NY" "$mgx" "$mgy" "$ranks")"
+    read -r rbx rby <<< "$(boxes "$REM_NX" "$REM_NY" "$mgx" "$mgy" "$ranks")"
+
     export OMP_NUM_THREADS=$t
     export OMP_PLACES=threads
     export OMP_PROC_BIND=spread
 
-    echo "=== $t threads x $ranks ranks -> $log"
+    echo "=== $t threads x $ranks ranks, max_grid_size $mgx x $mgy" \
+         "(ERF ${ebx}x${eby}, REMORA ${rbx}x${rby} boxes) -> $log"
     start=$(now)
     timeout $((RUN_MINUTES * 60)) \
         srun -N "$NNODES" -n "$ranks" -c $((2 * t)) --cpu-bind=cores \
             "$EXE" "$DECK" \
             max_step="$MAX_STEP" \
-            amr.max_grid_size_x="$MAX_GRID" amr.max_grid_size_y="$MAX_GRID" \
+            amr.max_grid_size_x="$mgx" amr.max_grid_size_y="$mgy" \
             ${TILE_ARGS[@]+"${TILE_ARGS[@]}"} \
             erf.plot_int_1=-1 erf.check_int=-1 \
             remora.plot_int=-1 remora.check_int=-1 \
@@ -173,8 +249,9 @@ for t in $THREADS; do
         || note="no OMP banner: build without OpenMP?"
     [ "$rc" -eq 124 ] && note="timed out after ${RUN_MINUTES} min $note"
 
-    printf '%-8s %-6s %-8s %-10.1f %-10s %-12s %-10s %s\n' \
-        "$t" "$ranks" "$rc" "$(awk -v a="$start" -v b="$end" 'BEGIN { print b - a }')" "$init" "$per_exch" \
+    printf '%-8s %-6s %-9s %-9s %-9s %-6s %-10.1f %-10s %-12s %-10s %s\n' \
+        "$t" "$ranks" "${mgx}x${mgy}" "$((ebx * eby))" "$((rbx * rby))" "$rc" \
+        "$(awk -v a="$start" -v b="$end" 'BEGIN { print b - a }')" "$init" "$per_exch" \
         "${tiny:--}" "$note" >> "$SUMMARY"
     tail -n 1 "$SUMMARY"
 done
