@@ -1,4 +1,4 @@
-# ERF-REMORA Driver
+# COASTER
 
 This repository builds a coupled driver that advances ERF (atmosphere) and
 REMORA (ocean) in one executable. The driver owns the coupling clock, the
