@@ -83,7 +83,12 @@ NNODES=${SLURM_JOB_NUM_NODES:-2}
 CORES_PER_NODE=128
 TOTAL_CORES=$((NNODES * CORES_PER_NODE))
 
-for f in "$EXE" "$OCCAMS_DIR/$DECK" "$OCCAMS_DIR/namelist.erf" \
+if [ ! -f "$EXE" ] || [ ! -x "$EXE" ]; then
+    echo "EXE is not an executable file: $EXE" >&2
+    [ -d "$EXE" ] && echo "     it is a directory; did you mean $EXE/erf-remora-driver?" >&2
+    exit 1
+fi
+for f in "$OCCAMS_DIR/$DECK" "$OCCAMS_DIR/namelist.erf" \
          "$OCCAMS_DIR/NoahmpTable.TBL"; do
     [ -e "$f" ] || { echo "missing: $f" >&2; exit 1; }
 done
@@ -104,11 +109,20 @@ fi
 echo "logs   : $OUT"
 echo
 
-# Prefix every output line with wall-clock seconds, so the steady-state rate can be
-# measured between exchanges, apart from start-up (file reads, remap weights).
+# Wall-clock seconds. Not $EPOCHREALTIME: that needs bash 5, and Perlmutter's
+# /bin/bash is older.
+now () { date +%s.%N; }
+
+# Prefix each "Completed exchange" line with wall-clock seconds, so the steady-state
+# rate can be measured between exchanges, apart from start-up (file reads, remap
+# weights). Other lines pass through unchanged, which keeps date calls to one per
+# exchange.
 stamp () {
     while IFS= read -r line; do
-        printf '%s %s\n' "$EPOCHREALTIME" "$line"
+        case $line in
+            "Completed exchange "*) printf '%s %s\n' "$(now)" "$line" ;;
+            *)                      printf '%s\n' "$line" ;;
+        esac
     done
 }
 
@@ -128,7 +142,7 @@ for t in $THREADS; do
     export OMP_PROC_BIND=spread
 
     echo "=== $t threads x $ranks ranks -> $log"
-    start=$EPOCHREALTIME
+    start=$(now)
     timeout $((RUN_MINUTES * 60)) \
         srun -N "$NNODES" -n "$ranks" -c $((2 * t)) --cpu-bind=cores \
             "$EXE" "$DECK" \
@@ -139,12 +153,12 @@ for t in $THREADS; do
             remora.plot_int=-1 remora.check_int=-1 \
             $EXTRA_ARGS 2>&1 | stamp > "$log"
     rc=${PIPESTATUS[0]}
-    end=$EPOCHREALTIME
+    end=$(now)
 
     # Steady state: mean time per exchange from the first completed exchange to the
     # last, which leaves out start-up and the first exchange.
     read -r init per_exch < <(awk -v s="$start" '
-        / Completed exchange / { n++; if (n == 1) first = $1; last = $1 }
+        /^[0-9.]+ Completed exchange / { n++; if (n == 1) first = $1; last = $1 }
         END {
             if (n == 0) { print "-", "-"; exit }
             printf "%.1f %s\n", first - s,
