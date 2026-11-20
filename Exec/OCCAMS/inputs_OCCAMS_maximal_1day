@@ -45,8 +45,8 @@ erf.vert_implicit_fac       = 1 1 1        # [170]
 # Radiation: WRF ra_lw/ra_sw = 4 (RRTMG), radt = 15 min = 90 steps at dt 10   [48,54,259]
 erf.radiation_model        = "RRTMGP"
 erf.rad_freq_in_steps      = 90
-erf.rad_t_sfc              = 292.0         # required; used as surface T for upwelling LW
-                                           # when no land model updates it (domain mean guess)
+erf.rad_t_sfc              = 292.0         # required; surface T for upwelling LW where
+                                           # neither Noah-MP nor the ocean sets it (domain mean guess)
 erf.rad_do_subcol_sampling = false
 erf.rad_write_fluxes       = false
 # WRF o3input = 2 (CAM climatology), 89 layers bottom-up, from o3_profile_from_wrf.py   [268,269]
@@ -61,9 +61,10 @@ erf.rrtmgp_cloud_optics_lw = rrtmgp-cloud-optics-coeffs-lw.nc
 # aerosol-aware; Morrison is the double-moment scheme with a WRFInput track record  [44]
 erf.moisture_model = "Morrison"
 
-# Land surface: WRF Noah-MP. The build compiles Noah-MP in, but its inputs are not
-# wired yet, so None is explicit here and land temperature comes from wrflowinp TSK [53,260]
-erf.land_surface_model = "None"
+# Land surface: WRF Noah-MP (sf_surface_physics = 4), 4 soil layers by default.   [53]
+# Needs a build with -DERF_ENABLE_NOAHMP=ON (build_cpu_noahmp in INSTALL.md). Run from
+# Exec/OCCAMS: Noah-MP reads namelist.erf and NoahmpTable.TBL from the run directory.
+erf.land_surface_model = "NOAHMP"
 
 # Boundary layer and surface layer                                               [168,169]
 erf.pbl_type               = "YSUNew"
