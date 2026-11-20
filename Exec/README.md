@@ -218,10 +218,12 @@ tells you which happened is `Loading boundary data from erfbdy file` (cache) ver
 `Initialized erfbdy file` (fresh conversion). `run_occams.sh` warns when the cache
 predates the driver binary.
 
-Cadence and stability: `max_step` counts ocean steps. With the deck's
-`remora.fixed_dt = 300` and `erf.fixed_dt = 10`, one `max_step` is thirty ERF
-steps and one ocean step, about ten minutes on sixteen ranks. Three settings that
-differ from ERF's and REMORA's defaults are load-bearing and are explained in
+Cadence and stability: `max_step` counts ocean steps. With the oneway, state
+and flux decks' `remora.fixed_dt = 300` and `erf.fixed_dt = 10`, one `max_step`
+is thirty ERF steps and one ocean step, about ten minutes on sixteen ranks.
+`inputs_OCCAMS_maximal_1day` runs the ocean at the ROMS `ocean.in` step of
+15 s instead, so its one day is `max_step = 5760`. Three settings that differ
+from ERF's and REMORA's defaults are load-bearing and are explained in
 `translation_map.tsv`:
 
 - `erf.vert_implicit_fac = 1 1 1` in `inputs_ERF` makes the PBL vertical
@@ -234,10 +236,11 @@ differ from ERF's and REMORA's defaults are load-bearing and are explained in
   thermals over the Nevada desert then reach the vertical CFL limit at ERF step
   64. The boundary cache depends on the levels, so move `erfbdy` aside whenever
   this flag changes.
-- `remora.ndtfast = 300` in each coupled deck keeps the barotropic step at the
-  1 s the ROMS `ocean.in` used. Inheriting the base deck's 15 with a 300 s step
-  makes it 20 s and the ocean's first step fails. Any deck that changes
-  `remora.fixed_dt` must scale `remora.ndtfast` with it.
+- `remora.ndtfast = 300` in each 300 s coupled deck (15 in the 15 s maximal
+  deck) keeps the barotropic step at the 1 s the ROMS `ocean.in` used.
+  Inheriting the base deck's 15 with a 300 s step makes it 20 s and the ocean's
+  first step fails. Any deck that changes `remora.fixed_dt` must scale
+  `remora.ndtfast` with it.
 
 ---
 
