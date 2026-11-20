@@ -103,8 +103,8 @@ erf.check_file  = occams_max1d_erf_chk
 erf.check_int   = 8640                     # daily, WRF restart_interval = 1440 min [13]
 
 # ---------------------------------------------------------------- REMORA: time
-remora.fixed_dt = 300.0                    # exchange interval; ocean.in DT was 15 s  [107]
-remora.ndtfast  = 300                      # keeps the 1 s barotropic step          [108]
+remora.fixed_dt = 15.0                     # exchange interval; ocean.in DT was 15 s  [107]
+remora.ndtfast  = 15                       # keeps the 1 s barotropic step          [108]
 
 # ---------------------------------------------------------------- REMORA: physics
 remora.bottom_stress_type = quadratic      # CPP UV_QDRAG                            [180]
@@ -117,8 +117,7 @@ remora.tracer_horizontal_advection_scheme = "upstream3"   # ocean.in Hadvection 
 
 # Shortwave absorbed over depth, not all in the top cell: CPP SOLAR_SOURCE [232], with the
 # water type of ocean.in WTYPE = 1, Jerlov I [133]. The shortwave is ERF's RRTMGP net
-# shortwave, from the flux contract. Needs REMORA with seahorce-scidac/REMORA#898; an older
-# REMORA ignores both keys silently.
+# shortwave, from the flux contract.
 remora.shortwave_penetration = true
 remora.jerlov_type           = I
 
@@ -138,6 +137,8 @@ remora.qair_is_percent = true
 
 # ---------------------------------------------------------------- REMORA: output
 remora.plot_file  = occams_max1d_remora_plt
-remora.plot_int   = 36                     # 3-hourly at a 300 s step, ocean.in NHIS   [111]
+remora.plot_int   = 240                     # hourly at a 15 s step, ocean.in NHIS   [111]
+remora.plot_vars_3d = temp salt x_velocity y_velocity z_velocity vorticity Akt Akv gls tke
+remora.plot_vars_2d  = zeta ubar vbar sustr svstr srflux lrflux shflux lhflux rain mask_rho
 remora.check_file = occams_max1d_remora_chk
-remora.check_int  = 288                    # daily                                     [110]
+remora.check_int  = 5760                    # daily                                     [110]
