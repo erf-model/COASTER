@@ -11,7 +11,6 @@
 #   pnetcdf_compat/oneyear_nudge_64bit.nc               CDF-5 copy of the nudge coefficients
 #   pnetcdf_compat/oneyear_forcings_qair.nc             forcing file with Qair renamed qair
 #   rrtmgp_coeffs/                                       RRTMGP coefficient files (present)
-#   Exec/OCCAMS/erfbdy                                   boundary cache on WRF levels (present)
 
 FILE = inputs_REMORA
 FILE = inputs_ERF
