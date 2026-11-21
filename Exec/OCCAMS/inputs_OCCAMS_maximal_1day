@@ -34,6 +34,7 @@ driver.ocean_time_offset  = 49939200.0     # [137]
 driver.remap_frame        = spherical      # [162,163]
 driver.remap_v            = 1
 driver.time_average_atm2ocn_flux  = 1      # mean over the 300 s exchange, not the end sample
+driver.exchange_interval = 300
 
 # ---------------------------------------------------------------- ERF: grid and time
 erf.fixed_dt                = 10.0         # WRF time_step [23]
