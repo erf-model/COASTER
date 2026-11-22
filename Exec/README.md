@@ -27,7 +27,7 @@ Run:
 
 ```bash
 cd Exec/Upwelling
-../../build_cpu_noahmp/erf-remora-driver inputs_oneway
+../../build_cpu_noahmp/coaster inputs_oneway
 ```
 
 Pulls in `inputs_ERF` and `inputs_REMORA` from the same directory. Needs no
@@ -46,7 +46,7 @@ Run:
 
 ```bash
 cd Exec/Upwelling
-../../build_cpu_noahmp/erf-remora-driver inputs_twoway
+../../build_cpu_noahmp/coaster inputs_twoway
 ```
 
 What to verify:
@@ -71,7 +71,7 @@ Run:
 
 ```bash
 cd Exec/OCCAMS
-srun -N 1 -n 16 ../../build_cpu_noahmp/erf-remora-driver inputs_OCCAMS_oneway
+srun -N 1 -n 16 ../../build_cpu_noahmp/coaster inputs_OCCAMS_oneway
 ```
 
 ---
@@ -87,7 +87,7 @@ Run:
 
 ```bash
 cd Exec/OCCAMS
-srun -N 1 -n 16 ../../build_cpu_noahmp/erf-remora-driver inputs_OCCAMS_state
+srun -N 1 -n 16 ../../build_cpu_noahmp/coaster inputs_OCCAMS_state
 ```
 
 ---
@@ -103,7 +103,7 @@ Run:
 
 ```bash
 cd Exec/OCCAMS
-srun -N 1 -n 16 ../../build_cpu_noahmp/erf-remora-driver inputs_OCCAMS_flux
+srun -N 1 -n 16 ../../build_cpu_noahmp/coaster inputs_OCCAMS_flux
 ```
 
 ### `OCCAMS/inputs_OCCAMS_smoke`
@@ -120,7 +120,7 @@ Run:
 
 ```bash
 cd Exec/OCCAMS
-srun -N 1 -n 16 ../../build_cpu_noahmp/erf-remora-driver inputs_OCCAMS_smoke
+srun -N 1 -n 16 ../../build_cpu_noahmp/coaster inputs_OCCAMS_smoke
 ```
 
 Unlike the production decks it sets `amrex.fpe_trap_invalid = 1`, so floating
@@ -819,7 +819,7 @@ ctest --test-dir build -L restart  -j4 --output-on-failure --no-tests=error
 ctest --test-dir build -L parallel -j4 --output-on-failure --no-tests=error
 ```
 
-**`compile_erf_remora_driver` must not run alongside anything else.** It invokes
+**`compile_coaster` must not run alongside anything else.** It invokes
 the build, and the driver relinks on every invocation, so the binary is replaced
 underneath any test currently executing it. Those tests die on `SIGILL` (exit
 132) with an `mpiexec ... could not access or execute` message that points at the
@@ -901,7 +901,7 @@ ctest --test-dir build -R 'reproducer_restart_twoway' --output-on-failure
 
 ### The tests that are not Upwelling matrix entries
 
-- `compile_erf_remora_driver` — build gate; other tests depend on it.
+- `compile_coaster` — build gate; other tests depend on it.
 - `reproducer_coupled_sst_coverage` — the coverage-contract test. Drives
   `inputs_twoway` four times with different `driver.remap_min_coverage_frac`
   and domain overrides, and asserts on **covered-cell counts**, not on

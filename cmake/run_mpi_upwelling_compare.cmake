@@ -1,5 +1,5 @@
-if(NOT DEFINED ERF_REMORA_DRIVER_EXE)
-  message(FATAL_ERROR "ERF_REMORA_DRIVER_EXE is required")
+if(NOT DEFINED COASTER_EXE)
+  message(FATAL_ERROR "COASTER_EXE is required")
 endif()
 if(NOT DEFINED ERF_REMORA_SOURCE_DIR)
   message(FATAL_ERROR "ERF_REMORA_SOURCE_DIR is required")
@@ -47,8 +47,8 @@ if(NOT DEFINED ERF_REMORA_EXCHANGE_PLOT_INT)
   set(ERF_REMORA_EXCHANGE_PLOT_INT "1")
 endif()
 
-if(NOT EXISTS "${ERF_REMORA_DRIVER_EXE}")
-  message(FATAL_ERROR "Missing driver executable: ${ERF_REMORA_DRIVER_EXE}")
+if(NOT EXISTS "${COASTER_EXE}")
+  message(FATAL_ERROR "Missing driver executable: ${COASTER_EXE}")
 endif()
 
 set(_input_file "${ERF_REMORA_SOURCE_DIR}/${ERF_REMORA_INPUT_FILE}")
@@ -117,7 +117,7 @@ function(_erf_remora_run_case _nranks _tag)
     separate_arguments(_mpiexec_preflags UNIX_COMMAND "${MPIEXEC_PREFLAGS}")
     list(APPEND _cmd ${_mpiexec_preflags})
   endif()
-  list(APPEND _cmd "${ERF_REMORA_DRIVER_EXE}" "${_work_dir}/${_input_name}")
+  list(APPEND _cmd "${COASTER_EXE}" "${_work_dir}/${_input_name}")
   list(APPEND _cmd
     "erf.plot_file_1=${_tag}/erfplt"
     "remora.plot_file=${_tag}/remoraplt"

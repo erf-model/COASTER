@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(erf-remora-driver CXX C)
+project(coaster CXX C)
 
 include(GNUInstallDirs)
 
@@ -165,7 +165,7 @@ endif()
 # included at Submodules/ERF/CMakeLists.txt:688 — but CMAKE_INSTALL_RPATH and
 # add_link_options() are both directory-scoped. ERF's copy runs inside the scope
 # opened by add_subdirectory(Submodules/ERF) above, which closes before
-# erf-remora-driver is defined here, so none of it reaches this executable. It has
+# coaster is defined here, so none of it reaches this executable. It has
 # to be included again in this scope, ahead of add_executable(), because
 # BUILD_WITH_INSTALL_RPATH and INSTALL_RPATH are read when the target is created.
 #
@@ -184,7 +184,7 @@ endif()
 include(${CMAKE_CURRENT_SOURCE_DIR}/Submodules/ERF/CMake/SetRpath.cmake)
 
 add_executable(
-  erf-remora-driver
+  coaster
   Source/main.cpp
   Source/CoupledRestartUtils.cpp
   Source/ERFRemoraMultiBlockContainer.cpp
@@ -193,7 +193,7 @@ add_executable(
 )
 
 target_include_directories(
-  erf-remora-driver
+  coaster
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
     ${CMAKE_CURRENT_SOURCE_DIR}/Submodules/ERF/Source
@@ -201,7 +201,7 @@ target_include_directories(
 )
 
 target_link_libraries(
-  erf-remora-driver
+  coaster
   PRIVATE
     AMReX::amrex
     erf_api
@@ -210,17 +210,17 @@ target_link_libraries(
 
 # The driver's own sources launch AMReX device lambdas, so they compile as CUDA too.
 if(_erf_remora_cuda)
-  setup_target_for_cuda_compilation(erf-remora-driver)
+  setup_target_for_cuda_compilation(coaster)
 endif()
 
 if(TARGET Kokkos::kokkos)
-  target_link_libraries(erf-remora-driver PRIVATE Kokkos::kokkos)
+  target_link_libraries(coaster PRIVATE Kokkos::kokkos)
 elseif(TARGET kokkoscore)
-  target_link_libraries(erf-remora-driver PRIVATE kokkoscore)
+  target_link_libraries(coaster PRIVATE kokkoscore)
 endif()
 
 install(
-  TARGETS erf-remora-driver
+  TARGETS coaster
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
@@ -252,7 +252,7 @@ if(ERF_REMORA_ENABLE_TESTS)
       NAME ${_name}
       COMMAND
         "${CMAKE_COMMAND}"
-        -DERF_REMORA_DRIVER_EXE=${ERF_REMORA_DRIVER_EXE}
+        -DCOASTER_EXE=${COASTER_EXE}
         -DERF_REMORA_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
         -DERF_REMORA_INPUT_FILE=${_input}
         -DFCOMPARE_EXE=${FCOMPARE_EXE}
@@ -298,7 +298,7 @@ if(ERF_REMORA_ENABLE_TESTS)
       NAME ${_test_prefix}_np${ERF_REMORA_MPI_NPROCS}_smoke
       COMMAND
         "${CMAKE_COMMAND}"
-        -DERF_REMORA_DRIVER_EXE=${ERF_REMORA_DRIVER_EXE}
+        -DCOASTER_EXE=${COASTER_EXE}
         -DERF_REMORA_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
         -DERF_REMORA_INPUT_FILE=${_input}
         -DERF_REMORA_RRTMGP_DIR=${ERF_REMORA_RRTMGP_DIR}
@@ -326,7 +326,7 @@ if(ERF_REMORA_ENABLE_TESTS)
       NAME ${_test_prefix}_np${ERF_REMORA_MPI_NPROCS}_compare_to_np1
       COMMAND
         "${CMAKE_COMMAND}"
-        -DERF_REMORA_DRIVER_EXE=${ERF_REMORA_DRIVER_EXE}
+        -DCOASTER_EXE=${COASTER_EXE}
         -DERF_REMORA_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
         -DERF_REMORA_INPUT_FILE=${_input}
         -DFCOMPARE_EXE=${FCOMPARE_EXE}
@@ -354,7 +354,7 @@ if(ERF_REMORA_ENABLE_TESTS)
     )
   endfunction()
 
-  set(ERF_REMORA_DRIVER_EXE "$<TARGET_FILE:erf-remora-driver>")
+  set(COASTER_EXE "$<TARGET_FILE:coaster>")
   set(ERF_REMORA_TEST_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_reproducer.cmake")
   set(ERF_REMORA_RESTART_TEST_SCRIPT
       "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_restart_reproducer.cmake")
@@ -370,13 +370,13 @@ if(ERF_REMORA_ENABLE_TESTS)
       "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_nonfinite_guards.cmake")
 
   add_test(
-    NAME compile_erf_remora_driver
+    NAME compile_coaster
     COMMAND
       "${CMAKE_COMMAND}"
       --build "${CMAKE_BINARY_DIR}"
-      --target erf-remora-driver
+      --target coaster
   )
-  set_tests_properties(compile_erf_remora_driver
+  set_tests_properties(compile_coaster
     PROPERTIES
       LABELS "compile"
   )
@@ -387,7 +387,7 @@ if(ERF_REMORA_ENABLE_TESTS)
     NAME reproducer_coupled_sst_coverage
     COMMAND
       "${CMAKE_COMMAND}"
-      -DERF_REMORA_DRIVER_EXE=${ERF_REMORA_DRIVER_EXE}
+      -DCOASTER_EXE=${COASTER_EXE}
       -DERF_REMORA_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
       -DERF_REMORA_INPUT_FILE=Exec/Upwelling/inputs_twoway
       -DFEXTREMA_EXE=${FEXTREMA_EXE}
@@ -409,7 +409,7 @@ if(ERF_REMORA_ENABLE_TESTS)
       NAME reproducer_cold_start_average
       COMMAND
         "${CMAKE_COMMAND}"
-        -DERF_REMORA_DRIVER_EXE=${ERF_REMORA_DRIVER_EXE}
+        -DCOASTER_EXE=${COASTER_EXE}
         -DERF_REMORA_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
         -DERF_REMORA_INPUT_FILE=Exec/Upwelling/inputs_oneway
         -DFCOMPARE_EXE=${FCOMPARE_EXE}
@@ -429,7 +429,7 @@ if(ERF_REMORA_ENABLE_TESTS)
     NAME reproducer_lane_provenance
     COMMAND
       "${CMAKE_COMMAND}"
-      -DERF_REMORA_DRIVER_EXE=${ERF_REMORA_DRIVER_EXE}
+      -DCOASTER_EXE=${COASTER_EXE}
       -DERF_REMORA_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
       -DERF_REMORA_INPUT_FILE=Exec/Upwelling/inputs_oneway
       -DERF_REMORA_RRTMGP_DIR=${ERF_REMORA_RRTMGP_DIR}
@@ -448,7 +448,7 @@ if(ERF_REMORA_ENABLE_TESTS)
     NAME reproducer_nonfinite_guards
     COMMAND
       "${CMAKE_COMMAND}"
-      -DERF_REMORA_DRIVER_EXE=${ERF_REMORA_DRIVER_EXE}
+      -DCOASTER_EXE=${COASTER_EXE}
       -DERF_REMORA_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
       -DERF_REMORA_INPUT_FILE=Exec/Upwelling/inputs_twoway
       -DERF_REMORA_RRTMGP_DIR=${ERF_REMORA_RRTMGP_DIR}
@@ -465,7 +465,7 @@ if(ERF_REMORA_ENABLE_TESTS)
         NAME parallel_nonfinite_guards_np${_mpi_nprocs}
         COMMAND
           "${CMAKE_COMMAND}"
-          -DERF_REMORA_DRIVER_EXE=${ERF_REMORA_DRIVER_EXE}
+          -DCOASTER_EXE=${COASTER_EXE}
           -DERF_REMORA_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
           -DERF_REMORA_INPUT_FILE=Exec/Upwelling/inputs_twoway
           -DERF_REMORA_RRTMGP_DIR=${ERF_REMORA_RRTMGP_DIR}

@@ -16,7 +16,7 @@
 #   Cases are the suffixes of inputs_OCCAMS_*: oneway, state, flux, smoke.
 #
 # Environment overrides:
-#   BUILD_DIR   build directory holding erf-remora-driver (default ../../build_cpu_noahmp)
+#   BUILD_DIR   build directory holding coaster (default ../../build_cpu_noahmp)
 #   NRANKS      MPI ranks (default 16)
 #   NNODES      nodes (default 1)
 #   LOGDIR      where to write logs (default .)
@@ -50,7 +50,7 @@ EXTRA_ARGS="${EXTRA_ARGS:-}"
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-DRIVER="${BUILD_DIR}/erf-remora-driver"
+DRIVER="${BUILD_DIR}/coaster"
 if [[ ! -x "${DRIVER}" ]]; then
     echo "error: no driver at ${DRIVER}" >&2
     echo "       build first, or set BUILD_DIR" >&2
