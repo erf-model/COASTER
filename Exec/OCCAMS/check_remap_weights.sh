@@ -46,7 +46,7 @@
 #
 # The script reads the decks (inputs_OCCAMS_*, inputs_ERF, inputs_REMORA) from
 # its own directory, so it can live in a copy of Exec/OCCAMS anywhere, e.g. on
-# scratch. The erfbdy cache is kept in that directory too.
+# scratch.
 #
 # Results: <out-dir>/<case>/{run.log,erfplt*,remoraplt*,exchange_*}, plus
 # <out-dir>/MANIFEST recording the driver, launcher and overrides. Each case
@@ -67,8 +67,7 @@ case_table=(
 default_cases=(smoke smoke_ring smoke_coawst twoway)
 
 # Every compared case writes its exchange plotfiles at each exchange and the
-# solver states at start and end, and prints the full remap diagnostics. The
-# erfbdy cache is shared with run_occams.sh so it is not rebuilt per case.
+# solver states at start and end, and prints the full remap diagnostics.
 common_args=(
   driver.remap_v=2
   driver.remap_dump_weights=1
@@ -78,7 +77,6 @@ common_args=(
   erf.plot_file_1=erfplt remora.plot_file=remoraplt
   driver.plot_file_exchange_a2o=exchange_a2o
   driver.plot_file_exchange_o2a=exchange_o2a
-  "erf.erfbdy_file=${here}/erfbdy"
 )
 
 # The lines that describe the weights: frame, staging, mesh, coverage, owner
@@ -99,10 +97,6 @@ run_cases () {
   local launch=${LAUNCH-srun -N 1 -n 16}   # LAUNCH= (empty) runs the driver directly
   local wrap=${WRAP:-}
   local extra=${EXTRA_ARGS:-}
-
-  if [[ -f $here/erfbdy/Header && $here/erfbdy/Header -ot $driver ]]; then
-    echo "WARNING: $here/erfbdy predates the driver; move it aside if ERF changed (see run_occams.sh)." >&2
-  fi
 
   mkdir -p "$out"
   out=$(realpath "$out")

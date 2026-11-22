@@ -25,9 +25,8 @@ erf.real_set_width      = 1
 erf.real_extrap_w       = true
 erf.rebalance_wrf_input = true
 # Keep WRF's level heights instead of rebuilding a 20 m-stretched grid, which is 3x
-# finer aloft and lets desert thermals hit the vertical CFL limit by t=640 s. The
-# erfbdy cache depends on the levels: regenerate it when this changes. Rationale in
-# translation_map.tsv (e_vert) and Exec/README.md.
+# finer aloft and lets desert thermals hit the vertical CFL limit by t=640 s.
+# Rationale in translation_map.tsv (e_vert) and Exec/README.md.
 erf.avg_grid_faces_to_nodes = true
 erf.nc_init_file_0      = "/pscratch/sd/k/kehinson/oracle/OCCAMS_for_Seahorce/base_drag_202108/wrfinput_d01"
 erf.nc_bdy_file         = "/pscratch/sd/k/kehinson/oracle/OCCAMS_for_Seahorce/base_drag_202108/wrfbdy_d01"
