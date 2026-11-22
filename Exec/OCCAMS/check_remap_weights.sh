@@ -26,7 +26,7 @@
 #                  plotfiles. For timing managed vs device memory; not compared.
 #
 # Environment:
-#   DRIVER      erf-remora-driver to run (required)
+#   DRIVER      coaster executable to run (required)
 #   FCOMPARE    amrex_fcompare (default: next to DRIVER, which needs the build
 #               configured with -DERF_REMORA_ENABLE_FCOMPARE=ON)
 #   LAUNCH      launcher prefix (default: "srun -N 1 -n 16"; set it empty to run
@@ -91,7 +91,7 @@ run_cases () {
   local cases=("$@")
   [[ ${#cases[@]} -eq 0 ]] && cases=("${default_cases[@]}")
 
-  : "${DRIVER:?set DRIVER to the erf-remora-driver to run}"
+  : "${DRIVER:?set DRIVER to the coaster executable to run}"
   local driver; driver=$(realpath "$DRIVER")
   [[ -x $driver ]] || { echo "error: no executable at $driver" >&2; exit 1; }
   local launch=${LAUNCH-srun -N 1 -n 16}   # LAUNCH= (empty) runs the driver directly

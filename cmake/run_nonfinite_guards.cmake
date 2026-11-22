@@ -13,8 +13,8 @@
 # Optional MPI: pass MPIEXEC_EXECUTABLE, MPIEXEC_NUMPROC_FLAG and
 # ERF_REMORA_MPI_NPROCS to run every case under mpiexec.
 
-if(NOT DEFINED ERF_REMORA_DRIVER_EXE)
-  message(FATAL_ERROR "ERF_REMORA_DRIVER_EXE is required")
+if(NOT DEFINED COASTER_EXE)
+  message(FATAL_ERROR "COASTER_EXE is required")
 endif()
 if(NOT DEFINED ERF_REMORA_SOURCE_DIR)
   message(FATAL_ERROR "ERF_REMORA_SOURCE_DIR is required")
@@ -22,8 +22,8 @@ endif()
 if(NOT DEFINED ERF_REMORA_INPUT_FILE)
   message(FATAL_ERROR "ERF_REMORA_INPUT_FILE is required")
 endif()
-if(NOT EXISTS "${ERF_REMORA_DRIVER_EXE}")
-  message(FATAL_ERROR "Missing driver executable: ${ERF_REMORA_DRIVER_EXE}")
+if(NOT EXISTS "${COASTER_EXE}")
+  message(FATAL_ERROR "Missing driver executable: ${COASTER_EXE}")
 endif()
 
 set(_input_file "${ERF_REMORA_SOURCE_DIR}/${ERF_REMORA_INPUT_FILE}")
@@ -85,7 +85,7 @@ endif()
 function(_check_case _tag _extra_args _expect)
   set(_log "${_work_dir}/${_tag}.log")
   execute_process(
-    COMMAND ${_launcher} "${ERF_REMORA_DRIVER_EXE}" "${_work_dir}/${_input_name}"
+    COMMAND ${_launcher} "${COASTER_EXE}" "${_work_dir}/${_input_name}"
             ${_common_args} ${_extra_args}
     WORKING_DIRECTORY "${_work_dir}"
     OUTPUT_FILE "${_log}"

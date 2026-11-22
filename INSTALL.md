@@ -3,12 +3,12 @@
 ## Quick Start
 
 ```bash
-git clone --recursive git@github.com:erf-model/remora-erf-driver
-cd remora-erf-driver
+git clone --recursive git@github.com:erf-model/COASTER
+cd COASTER
 cmake -S . -B build
-cmake --build build -j 8 --target erf-remora-driver
+cmake --build build -j 8 --target coaster
 cd Exec/Upwelling
-../../build/erf-remora-driver inputs_oneway max_step=10
+../../build/coaster inputs_oneway max_step=10
 ```
 
 Run coupled decks from their own directory: they import their solver decks with
@@ -71,7 +71,7 @@ From the repository root:
 
 ```bash
 cmake -S . -B build
-cmake --build build -j 8 --target erf-remora-driver
+cmake --build build -j 8 --target coaster
 ```
 
 If configured with `-DERF_REMORA_ENABLE_TESTS=ON`, the following CTest labels
@@ -142,7 +142,7 @@ cmake -S . -B build_omp \
   -DCMAKE_CXX_COMPILER=mpicxx \
   -DCMAKE_Fortran_COMPILER=mpif90 \
   -DERF_REMORA_ENABLE_OPENMP=ON
-cmake --build build_omp -j 8 --target erf-remora-driver
+cmake --build build_omp -j 8 --target coaster
 ```
 
 ### 3. Perlmutter (NERSC)
@@ -282,7 +282,7 @@ Most of what this section used to describe by hand is now in the CTest suite
 (see "Local CTest workflow" above). Prefer the suite: it covers more cases, and
 the manual procedures it replaced drifted out of date faster than they were run.
 
-**Run one label per `ctest` invocation.** `compile_erf_remora_driver` relinks the
+**Run one label per `ctest` invocation.** `compile_coaster` relinks the
 driver, so scheduling it alongside tests that execute the binary kills them with
 `SIGILL`. Within a label, `-j` is fine — every test takes its own working
 directory. See `Exec/README.md` for the measured concurrency.
@@ -326,7 +326,7 @@ temperature. The only test that exercises the coverage threshold.
 ### 4. Flux coupling — manual
 
 ```bash
-mpirun -n 1 ./build/erf-remora-driver Exec/Upwelling/inputs_twoway \
+mpirun -n 1 ./build/coaster Exec/Upwelling/inputs_twoway \
   driver.atm2ocn_mode=flux \
   driver.plot_int_exchange=1
 ```
@@ -368,7 +368,7 @@ both solver libraries simultaneously.
 
 Key dispatch:
 
-- `driver.*` — consumed by `erf-remora-driver`
+- `driver.*` — consumed by `coaster`
 - `erf.*` and shared mesh keys (`amr.*`, `geometry.*`) — consumed by ERF
 - `remora.*` and shared mesh keys (`amr.*`, `geometry.*`) — consumed by REMORA
 
@@ -461,5 +461,5 @@ that it is ignored.
 Run with:
 
 ```bash
-./build/erf-remora-driver /path/to/inputs
+./build/coaster /path/to/inputs
 ```

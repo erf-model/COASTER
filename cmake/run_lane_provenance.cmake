@@ -37,8 +37,8 @@
 # Script mode starts with no policies set, and this file uses IN_LIST.
 cmake_policy(SET CMP0057 NEW)
 
-if(NOT DEFINED ERF_REMORA_DRIVER_EXE)
-  message(FATAL_ERROR "ERF_REMORA_DRIVER_EXE is required")
+if(NOT DEFINED COASTER_EXE)
+  message(FATAL_ERROR "COASTER_EXE is required")
 endif()
 if(NOT DEFINED ERF_REMORA_SOURCE_DIR)
   message(FATAL_ERROR "ERF_REMORA_SOURCE_DIR is required")
@@ -50,8 +50,8 @@ if(NOT DEFINED ERF_REMORA_MAX_STEP)
   set(ERF_REMORA_MAX_STEP "1")
 endif()
 
-if(NOT EXISTS "${ERF_REMORA_DRIVER_EXE}")
-  message(FATAL_ERROR "Missing driver executable: ${ERF_REMORA_DRIVER_EXE}")
+if(NOT EXISTS "${COASTER_EXE}")
+  message(FATAL_ERROR "Missing driver executable: ${COASTER_EXE}")
 endif()
 
 set(_input_file "${ERF_REMORA_SOURCE_DIR}/${ERF_REMORA_INPUT_FILE}")
@@ -132,7 +132,7 @@ function(_check_case _tag _contract _extra_args _flux_averaged _state_averaged)
 
   set(_log "${_work_dir}/${_tag}.log")
   set(_prefix "${_tag}_a2o")
-  set(_cmd "${ERF_REMORA_DRIVER_EXE}" "${_work_dir}/${_input_name}")
+  set(_cmd "${COASTER_EXE}" "${_work_dir}/${_input_name}")
   list(APPEND _cmd
     ${_common_args}
     "driver.atm2ocn_mode=${_contract}"

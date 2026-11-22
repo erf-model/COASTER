@@ -15,8 +15,8 @@
 # contract: that coverage is reported as partial rather than total, and that
 # t_surf over the whole domain never drops to the remap's zero fill.
 
-if(NOT DEFINED ERF_REMORA_DRIVER_EXE)
-  message(FATAL_ERROR "ERF_REMORA_DRIVER_EXE is required")
+if(NOT DEFINED COASTER_EXE)
+  message(FATAL_ERROR "COASTER_EXE is required")
 endif()
 if(NOT DEFINED ERF_REMORA_SOURCE_DIR)
   message(FATAL_ERROR "ERF_REMORA_SOURCE_DIR is required")
@@ -37,8 +37,8 @@ if(NOT DEFINED ERF_REMORA_TSURF_FLOOR_K)
   set(ERF_REMORA_TSURF_FLOOR_K "100.0")
 endif()
 
-if(NOT EXISTS "${ERF_REMORA_DRIVER_EXE}")
-  message(FATAL_ERROR "Missing driver executable: ${ERF_REMORA_DRIVER_EXE}")
+if(NOT EXISTS "${COASTER_EXE}")
+  message(FATAL_ERROR "Missing driver executable: ${COASTER_EXE}")
 endif()
 if(NOT EXISTS "${FEXTREMA_EXE}")
   message(FATAL_ERROR "Missing fextrema executable: ${FEXTREMA_EXE}")
@@ -93,7 +93,7 @@ endif()
 # Run the deck and return the coverage counts the driver reports.
 function(_run_case _tag _extra_args _out_covered _out_total)
   set(_log "${_work_dir}/${_tag}.log")
-  set(_cmd "${ERF_REMORA_DRIVER_EXE}" "${_work_dir}/${_input_name}")
+  set(_cmd "${COASTER_EXE}" "${_work_dir}/${_input_name}")
   list(APPEND _cmd ${_common_args} ${_extra_args})
 
   execute_process(

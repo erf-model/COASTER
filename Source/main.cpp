@@ -166,7 +166,7 @@ main (int argc, char* argv[])
 
     if (argc < 2) {
         amrex::Abort("No input file provided."
-                     " Usage: erf-remora-driver <inputs-file> [<key>=<value> ...]");
+                     " Usage: coaster <inputs-file> [<key>=<value> ...]");
     }
 
     if (!strchr(argv[1], '=')) {
@@ -573,7 +573,7 @@ main (int argc, char* argv[])
     } catch (const std::exception& error) {
         amrex::Abort(error.what());
     }
-    amrex::Print() << "erf-remora-driver run completed\n";
+    amrex::Print() << "coaster run completed\n";
 
 #ifdef ERF_USE_KOKKOS
     if (Kokkos::is_initialized()) {

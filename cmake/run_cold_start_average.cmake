@@ -21,8 +21,8 @@
 # would go unnoticed. With RRTMGP (ERF_REMORA_RRTMGP_DIR set) SWrad and LWrad
 # vary as well.
 
-if(NOT DEFINED ERF_REMORA_DRIVER_EXE)
-  message(FATAL_ERROR "ERF_REMORA_DRIVER_EXE is required")
+if(NOT DEFINED COASTER_EXE)
+  message(FATAL_ERROR "COASTER_EXE is required")
 endif()
 if(NOT DEFINED ERF_REMORA_SOURCE_DIR)
   message(FATAL_ERROR "ERF_REMORA_SOURCE_DIR is required")
@@ -33,8 +33,8 @@ endif()
 if(NOT DEFINED FCOMPARE_EXE)
   message(FATAL_ERROR "FCOMPARE_EXE is required")
 endif()
-if(NOT EXISTS "${ERF_REMORA_DRIVER_EXE}")
-  message(FATAL_ERROR "Missing driver executable: ${ERF_REMORA_DRIVER_EXE}")
+if(NOT EXISTS "${COASTER_EXE}")
+  message(FATAL_ERROR "Missing driver executable: ${COASTER_EXE}")
 endif()
 
 set(_input_file "${ERF_REMORA_SOURCE_DIR}/${ERF_REMORA_INPUT_FILE}")
@@ -87,7 +87,7 @@ set(_flux_lanes_state_contract SWrad LWrad)
 function(_run _tag)
   set(_log "${_work_dir}/${_tag}.log")
   execute_process(
-    COMMAND "${ERF_REMORA_DRIVER_EXE}" "${_work_dir}/${_input_name}"
+    COMMAND "${COASTER_EXE}" "${_work_dir}/${_input_name}"
             ${_common_args}
             "driver.plot_file_exchange_a2o=${_tag}_a2o"
             "driver.plot_file_exchange_o2a=${_tag}_o2a"
