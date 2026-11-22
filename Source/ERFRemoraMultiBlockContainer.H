@@ -140,6 +140,9 @@ private:
     void AccumulateAtmosToOcean(amrex::Real weight, amrex::Real steps_since_last_sample);
     void DrainAtmosToOceanAccumulators();
     void FillOceanToAtmosGhosts();
+    // Pack REMORA's surface state (SST, and the current when coupled) into state on
+    // ERF's layout, zeroing ERF land
+    void PackOceanToAtmos(amrex::Vector<amrex::MultiFab*>& state, amrex::Real time);
     void FillAtmosToOceanGhosts();
     void PrintDiagnostics(const char* label,
                           const amrex::Vector<amrex::MultiFab*>& fields,
@@ -281,6 +284,8 @@ private:
     std::string m_scrip_o2a_group = "ocn1_to_atm1_weights.nc";
     coupling::AtmosToOceanContract m_atmos_to_ocean_contract;
     bool m_use_two_way_coupling = false;
+    // driver.couple_currents: send REMORA's surface current to ERF with the SST
+    bool m_couple_currents = false;
     int m_driver_verbose = 0;
     bool m_time_average_atm2ocn_state = false;
     bool m_time_average_atm2ocn_flux = false;
@@ -393,10 +398,13 @@ private:
     amrex::Vector<std::string> m_atmos_to_ocean_lane_reason;
     bool m_atmos_to_ocean_lane_sources_resolved = false;
 
-    // Ocean -> atmosphere state cache (currently SST only).
+    // Ocean -> atmosphere state cache: SST, and with driver.couple_currents the
+    // eastward and northward surface current (OceanToAtmosIndex order).
     // TODO(initial-temporal-interpolation): same old/new cache split as m_atmos_to_ocean.
     amrex::Vector<std::unique_ptr<amrex::MultiFab>> m_ocean_to_atmos_storage;
     amrex::Vector<amrex::MultiFab*> m_ocean_to_atmos;
+    // The names of the lanes this run has, one per entry of m_ocean_to_atmos
+    amrex::Vector<std::string> m_ocean_to_atmos_names;
 
     static constexpr int MAX_STENCIL_SIZE = 9;
 

@@ -240,12 +240,9 @@ construction and one full exchange, with FPE trapping left on. It is not long
 enough to expose dynamical instability, so it guards startup and coupling, not
 the solution. Run `oneway` for that.
 
-After a pull that moves the ERF submodule, also move `Exec/OCCAMS/erfbdy` aside.
-It is a cache of the WRF boundary data converted by whichever ERF ran first, ERF
-reloads it without checking its provenance, and a stale one is silently wrong.
-The next run regenerates it from `wrfbdy_d01` in a few minutes; `run_occams.sh`
-warns when the cache is older than the driver binary. `Exec/README.md` has the
-details.
+The OCCAMS decks read the WRF boundary data from `wrfbdy_d01` on every run and
+do not use ERF's `erfbdy` cache, so nothing needs regenerating after a pull that
+moves the ERF submodule. `Exec/README.md` has the details.
 
 See `Exec/OCCAMS/run_occams.sh` for per-case runs and rank overrides, and
 `Exec/README.md` for how to read the coupling diagnostics it prints.
@@ -407,6 +404,8 @@ driver.remap_dump_weights = 0       # write the built remap arrays to remap_weig
 driver.v                 = 0        # driver lifecycle detail
 driver.plot_int_exchange = -1       # exchange-field plotfiles, in ocean steps;
                                     # checked once per exchange
+driver.couple_currents   = false    # two-way: send REMORA's surface current to ERF,
+                                    # whose surface stress then uses the relative wind
 
 # What a wet ocean cell with no atmosphere source cell receives.
 # Spherical frame only; inert in the cartesian frame.

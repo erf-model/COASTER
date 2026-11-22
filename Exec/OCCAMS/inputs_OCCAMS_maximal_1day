@@ -11,7 +11,6 @@
 #   pnetcdf_compat/oneyear_nudge_64bit.nc               CDF-5 copy of the nudge coefficients
 #   pnetcdf_compat/oneyear_forcings_qair.nc             forcing file with Qair renamed qair
 #   rrtmgp_coeffs/                                       RRTMGP coefficient files (present)
-#   Exec/OCCAMS/erfbdy                                   boundary cache on WRF levels (present)
 
 FILE = inputs_REMORA
 FILE = inputs_ERF
@@ -21,7 +20,7 @@ amrex.fpe_trap_invalid    = 1
 fabarray.mfiter_tile_size = 1024 1024 1024
 
 start_datetime = "2021-08-01 00:00:00"
-max_step       = 288                       # ocean steps; 288 x 300 s = 24 h   [2,3]
+max_step       = 5760                      # ocean steps; 5760 x 15 s = 24 h   [2,3]
 
 # 120 ERF boxes and 108 REMORA boxes instead of 30 each, so 64 to 128 ranks fill a node
 amr.max_grid_size_x = 64
@@ -34,6 +33,7 @@ driver.ocean_time_offset  = 49939200.0     # [137]
 driver.remap_frame        = spherical      # [162,163]
 driver.remap_v            = 1
 driver.time_average_atm2ocn_flux  = 1      # mean over the 300 s exchange, not the end sample
+driver.exchange_interval = 300
 
 # ---------------------------------------------------------------- ERF: grid and time
 erf.fixed_dt                = 10.0         # WRF time_step [23]
@@ -45,8 +45,8 @@ erf.vert_implicit_fac       = 1 1 1        # [170]
 # Radiation: WRF ra_lw/ra_sw = 4 (RRTMG), radt = 15 min = 90 steps at dt 10   [48,54,259]
 erf.radiation_model        = "RRTMGP"
 erf.rad_freq_in_steps      = 90
-erf.rad_t_sfc              = 292.0         # required; used as surface T for upwelling LW
-                                           # when no land model updates it (domain mean guess)
+erf.rad_t_sfc              = 292.0         # required; surface T for upwelling LW where
+                                           # neither Noah-MP nor the ocean sets it (domain mean guess)
 erf.rad_do_subcol_sampling = false
 erf.rad_write_fluxes       = false
 # WRF o3input = 2 (CAM climatology), 89 layers bottom-up, from o3_profile_from_wrf.py   [268,269]
@@ -61,9 +61,10 @@ erf.rrtmgp_cloud_optics_lw = rrtmgp-cloud-optics-coeffs-lw.nc
 # aerosol-aware; Morrison is the double-moment scheme with a WRFInput track record  [44]
 erf.moisture_model = "Morrison"
 
-# Land surface: WRF Noah-MP. The build compiles Noah-MP in, but its inputs are not
-# wired yet, so None is explicit here and land temperature comes from wrflowinp TSK [53,260]
-erf.land_surface_model = "None"
+# Land surface: WRF Noah-MP (sf_surface_physics = 4), 4 soil layers by default.   [53]
+# Needs a build with -DERF_ENABLE_NOAHMP=ON (build_cpu_noahmp in INSTALL.md). Run from
+# Exec/OCCAMS: Noah-MP reads namelist.erf and NoahmpTable.TBL from the run directory.
+erf.land_surface_model = "NOAHMP"
 
 # Boundary layer and surface layer                                               [168,169]
 erf.pbl_type               = "YSUNew"
@@ -102,8 +103,8 @@ erf.check_file  = occams_max1d_erf_chk
 erf.check_int   = 8640                     # daily, WRF restart_interval = 1440 min [13]
 
 # ---------------------------------------------------------------- REMORA: time
-remora.fixed_dt = 300.0                    # exchange interval; ocean.in DT was 15 s  [107]
-remora.ndtfast  = 300                      # keeps the 1 s barotropic step          [108]
+remora.fixed_dt = 15.0                     # exchange interval; ocean.in DT was 15 s  [107]
+remora.ndtfast  = 15                       # keeps the 1 s barotropic step          [108]
 
 # ---------------------------------------------------------------- REMORA: physics
 remora.bottom_stress_type = quadratic      # CPP UV_QDRAG                            [180]
@@ -113,6 +114,12 @@ remora.vertical_mixing_type   = gls        # [117,183]
 remora.gls_stability_type     = canuto_a   # reference used Kantha-Clayson, not in REMORA [184]
 remora.horizontal_mixing_type = "constant" # [112,182]
 remora.tracer_horizontal_advection_scheme = "upstream3"   # ocean.in Hadvection U3  [99]
+
+# Shortwave absorbed over depth, not all in the top cell: CPP SOLAR_SOURCE [232], with the
+# water type of ocean.in WTYPE = 1, Jerlov I [133]. The shortwave is ERF's RRTMGP net
+# shortwave, from the flux contract.
+remora.shortwave_penetration = true
+remora.jerlov_type           = I
 
 # Climatology nudging: ocean.in L*CLM and Lnudge*CLM all T, 30-day scales from base [139,145,147]
 remora.nc_clim_his_file   = "/global/cfs/cdirs/m4304/jmsexton/OCCAM/pnetcdf_compat/OCCAMS_clm_v7_merc_202108_64bit.nc"
@@ -130,6 +137,8 @@ remora.qair_is_percent = true
 
 # ---------------------------------------------------------------- REMORA: output
 remora.plot_file  = occams_max1d_remora_plt
-remora.plot_int   = 36                     # 3-hourly at a 300 s step, ocean.in NHIS   [111]
+remora.plot_int   = 240                     # hourly at a 15 s step, ocean.in NHIS   [111]
+remora.plot_vars_3d = temp salt x_velocity y_velocity z_velocity vorticity Akt Akv gls tke
+remora.plot_vars_2d  = zeta ubar vbar sustr svstr srflux lrflux shflux lhflux rain mask_rho
 remora.check_file = occams_max1d_remora_chk
-remora.check_int  = 288                    # daily                                     [110]
+remora.check_int  = 5760                    # daily                                     [110]

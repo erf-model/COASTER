@@ -121,6 +121,19 @@ REMORAPackSurfaceState(void* remora_handle,
 }
 
 void
+REMORAPackSurfaceCurrents(void* remora_handle,
+                          amrex::MultiFab& east_dst,
+                          amrex::MultiFab& north_dst,
+                          const amrex::MultiFab* weight_o2a_mf,
+                          const amrex::iMultiFab* index_o2a_mf,
+                          int max_stencil_size,
+                          const amrex::iMultiFab* dst_land_mask)
+{
+    static_cast<REMORA*>(remora_handle)->PackSurfaceCurrents(
+        east_dst, north_dst, weight_o2a_mf, index_o2a_mf, max_stencil_size, dst_land_mask);
+}
+
+void
 REMORAGetDeckConfiguredAtmosLanes(void* remora_handle,
                                   amrex::Vector<int>& deck_configured)
 {

@@ -123,14 +123,6 @@ set(REMORA_ENABLE_PNETCDF ${REMORA_ENABLE_PNETCDF} CACHE BOOL "" FORCE)
 option(ERF_ENABLE_PNETCDF "Enable PNETCDF" ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Submodules/ERF/CMake")
-# ERF's CrayDetection.cmake sets AMReX_CUDA_ARCH on Cray, and SetERFCompileFlags.cmake
-# then calls set_cuda_architectures, which AMReX removed (AMReX #4773). Until ERF
-# drops that call, supply it: it only turns AMReX_CUDA_ARCH (8.0) into 80.
-if(ERF_REMORA_GPU_BACKEND STREQUAL "CUDA" AND NOT COMMAND set_cuda_architectures)
-  macro(set_cuda_architectures _var)
-    string(REPLACE "." "" AMREX_CUDA_ARCHS "${${_var}}")
-  endmacro()
-endif()
 add_subdirectory(Submodules/ERF erf-build)
 add_subdirectory(Submodules/REMORA remora-build)
 
@@ -364,6 +356,8 @@ if(ERF_REMORA_ENABLE_TESTS)
       "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_mpi_upwelling_compare.cmake")
   set(ERF_REMORA_SST_COVERAGE_TEST_SCRIPT
       "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_coupled_sst_coverage.cmake")
+  set(ERF_REMORA_SURFACE_CURRENT_TEST_SCRIPT
+      "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_coupled_surface_current.cmake")
   set(ERF_REMORA_LANE_PROVENANCE_TEST_SCRIPT
       "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_lane_provenance.cmake")
   set(ERF_REMORA_NONFINITE_GUARDS_TEST_SCRIPT
@@ -417,6 +411,29 @@ if(ERF_REMORA_ENABLE_TESTS)
         -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/run_cold_start_average.cmake"
     )
     set_tests_properties(reproducer_cold_start_average
+      PROPERTIES
+        LABELS "reproducer;coupling"
+        PROCESSORS 1
+    )
+  endif()
+
+  # REMORA's surface current must reach ERF's surface layer with
+  # driver.couple_currents, and a half-configured run must stop at start-up.
+  if(FCOMPARE_EXE)
+    add_test(
+      NAME reproducer_coupled_surface_current
+      COMMAND
+        "${CMAKE_COMMAND}"
+        -DERF_REMORA_DRIVER_EXE=${ERF_REMORA_DRIVER_EXE}
+        -DERF_REMORA_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+        -DERF_REMORA_INPUT_FILE=Exec/Upwelling/inputs_twoway
+        -DFEXTREMA_EXE=${FEXTREMA_EXE}
+        -DFCOMPARE_EXE=${FCOMPARE_EXE}
+        -DERF_REMORA_RRTMGP_DIR=${ERF_REMORA_RRTMGP_DIR}
+        -DERF_REMORA_MAX_STEP=4
+        -P "${ERF_REMORA_SURFACE_CURRENT_TEST_SCRIPT}"
+    )
+    set_tests_properties(reproducer_coupled_surface_current
       PROPERTIES
         LABELS "reproducer;coupling"
         PROCESSORS 1
@@ -487,23 +504,18 @@ if(ERF_REMORA_ENABLE_TESTS)
   # answer twice: once across rank counts, once across a checkpoint/restart.
   # Both require every other source of run-to-run variation to be absent, so
   # they run the deck's own PBL scheme rather than overriding it, and the deck
-  # scheme has to be one that holds still. erf.pbl_type=MRF does. Measured on
-  # the Upwelling deck: cold vs restarted and np1 vs np4 both fcompare to
-  # exactly zero absolute error on every ERF, REMORA and exchange field.
+  # scheme has to be one that holds still. The deck's scheme is currently
+  # erf.pbl_type=MYNN25 (Exec/Upwelling/inputs_ERF), so these tests exercise
+  # MYNN25's rank and restart reproducibility; any MYNN option the deck turns
+  # on is in their path too.
   #
-  # These tests used to force erf.pbl_type=None, because the deck's previous
-  # scheme, MYNN25, is neither rank- nor restart-reproducible:
-  #
-  #   - across ranks, np1 vs npN is identical at step 0, diverges to 7e-06 in
-  #     Kmv by step 10 and 2.4e-02 (0.37% relative) by step 20, saturating at
-  #     the same magnitude for np2, np4 and np8
-  #   - across restart, cold vs restarted diverges to 1.3 in Kmv (19% relative)
-  #
-  # That is still an open ERF issue and nothing here covers it; it is simply no
-  # longer in the path of these tests. The override also had to supply constant
-  # molecular diffusion, because MOST asserts has_diff (ERF.cpp) and disabling
-  # the PBL scheme removed the only diffusion the deck had. MRF satisfies
-  # has_diff on its own, so the deck's erf.molec_diff_type=None stands.
+  # History: these tests once forced erf.pbl_type=None, because MYNN25 in the
+  # ERF of the time was neither rank- nor restart-reproducible (cold vs
+  # restarted diverged to 1.3 in Kmv, 19% relative). That override also had to
+  # supply constant molecular diffusion, because MOST asserts has_diff
+  # (ERF.cpp). The deck then moved to MRF, which fcompared to exactly zero, and
+  # the override was dropped; the deck has since moved back to MYNN25, which
+  # satisfies has_diff on its own, so erf.molec_diff_type=None stands.
 
   if(FCOMPARE_EXE)
     # Non-integral ocean/atmosphere ratio, with checkpoints at exchange boundaries.

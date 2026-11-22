@@ -1,0 +1,34 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+#
+# inputs_OCCAMS_flux with the output check_rotation.py needs, and the surface current
+# coupled: three ocean steps, the driver's exchange plotfiles, ERF's grid-axis and
+# earth-relative 10 m winds every exchange, and REMORA's NetCDF history (stress, angle,
+# currents) every ocean step.
+#
+# Run it like inputs_OCCAMS_flux (see Exec/README.md), then, in the run directory:
+#
+#   python3 check_rotation.py --run . --rho0 1025 \
+#       --wrfinput /pscratch/sd/k/kehinson/oracle/OCCAMS_for_Seahorce/base_drag_202108/wrfinput_d01
+#
+# Check 1 (REMORA's turning of the stress, exact), check 2 (ERF's, against WRF's alpha) and
+# check 4 (the surface current) apply here; check 3 needs the winds REMORA applies, which only
+# the state deck has. After three ocean steps the current may be slow: if check 4 reports no
+# current, lower --min-current, or run longer.
+#
+# A later definition of a key overrides an earlier one, so these follow the include.
+
+FILE = inputs_OCCAMS_flux
+
+max_step = 3
+
+driver.plot_int_exchange = 1
+driver.couple_currents   = true
+
+# ERF steps per exchange: remora.fixed_dt / erf.fixed_dt = 300 / 10
+erf.plot2d_vars_1 = u_10m v_10m u_east_10m v_north_10m
+erf.plot2d_file_1 = occams_rotcheck_erf_2d
+erf.plot2d_int_1  = 30
+
+remora.plot_file       = occams_rotcheck_flux_remora
+remora.plotfile_type   = netcdf
+remora.plot_int        = 1

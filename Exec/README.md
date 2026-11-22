@@ -135,6 +135,53 @@ show up here. Use `inputs_OCCAMS_oneway` for that.
 Status: committed but not yet run. Treat the first execution as a test of the
 deck as much as of the code.
 
+### `OCCAMS/inputs_OCCAMS_rotcheck_state`, `OCCAMS/inputs_OCCAMS_rotcheck_flux`
+
+Purpose:
+
+- Check that the vectors crossing the exchange are turned between the grid axes
+  correctly. The WRF/ERF and ROMS/REMORA grids differ by up to 5.4 degrees over
+  the OCCAMS ocean (`compare_grid_angles.py` maps it). Winds and stress cross as
+  east/north: ERF turns them from its grid axes with its lat/lon, and REMORA
+  turns them onto its own axes with its `angle`. The surface current goes the
+  other way.
+- Each includes `inputs_OCCAMS_state` or `inputs_OCCAMS_flux` and runs three
+  ocean steps. It writes the exchange plotfiles, ERF's grid-axis and
+  earth-relative 10 m winds, and REMORA's NetCDF history (which needs a NetCDF
+  or PnetCDF build). The flux deck also sets `driver.couple_currents = true`.
+
+Run each like its base deck, then in its run directory:
+
+```bash
+python3 check_rotation.py --run . \
+    --wrfinput /pscratch/sd/k/kehinson/oracle/OCCAMS_for_Seahorce/base_drag_202108/wrfinput_d01
+```
+
+`check_rotation.py` (numpy, scipy, netCDF4) reports:
+
+1. Whether REMORA's turning is exact: the exchanged east/north winds (state)
+   or stress (flux, made kinematic and averaged to the faces) against what
+   REMORA applied.
+2. ERF's earth-relative 10 m wind against its grid wind turned with WRF's own
+   `COSALPHA`/`SINALPHA`.
+3. End to end (state): the direction of the wind REMORA applied, turned back to
+   east/north, minus ERF's, against ROMS `angle` minus WRF alpha. The slope is
+   0 if the vectors are turned correctly, +1 if not turned, and -1 if turned the
+   wrong way.
+4. The same slope for the surface current (flux, with `driver.couple_currents`).
+
+Run on 2026-11-18, from the code of #43 and #49:
+
+- **Check 1:** exact, to roundoff, for the winds and the stress. The fitted
+  stress scale was -1/rho0.
+- **Check 2:** a direction difference of at most 0.068 degrees.
+- **Check 3:** slope +0.03 over about 170,000 points.
+- **Check 4:** slope +0.004 ± 0.009 over 216,090 points.
+
+The small check-3 slope, about 0.2 degrees across the whole range of the angle
+difference, comes from the remap and the position of the points, not the
+rotation: check 1 is exact.
+
 ---
 
 #### OCCAMS notes, common to all four
@@ -159,22 +206,20 @@ Grids are non-conformal by design — ERF is `637 x 754`, REMORA is `563 x 751`
 over the same extent — so partial coverage is expected and the coverage
 diagnostics below carry real information.
 
-Boundary cache: on its first run ERF converts `wrfbdy_d01` to its own levels and
-writes the result to `Exec/OCCAMS/erfbdy/`, then every later run loads that
-directory instead of the NetCDF file. Nothing records which ERF wrote it, and
-the only consistency check is the variable count. A cache written by an older
-ERF is loaded silently and can be wrong — one written before ERF `f0ac0b388`
-carries a height-interpolation bug and blasts all four lateral edges within the
-first step. After any ERF submodule update, move
-`erfbdy` aside; the next run regenerates it in a few minutes. The log line that
-tells you which happened is `Loading boundary data from erfbdy file` (cache) versus
-`Initialized erfbdy file` (fresh conversion). `run_occams.sh` warns when the cache
-predates the driver binary.
+Boundary data: every run reads `wrfbdy_d01` itself, converting the first
+slices to ERF's levels at start-up and later ones as the run reaches them. ERF's
+`erfbdy` cache is off on the WRFInput path: it is written only with
+`erf.write_erfbdy = true` and read only with `erf.use_erfbdy = true`, and the
+OCCAMS decks set neither, so a leftover `Exec/OCCAMS/erfbdy/` directory is
+ignored. If you turn the cache on, nothing records which ERF wrote it or on which
+levels, so delete it after any ERF update or change to the vertical grid.
 
-Cadence and stability: `max_step` counts ocean steps. With the deck's
-`remora.fixed_dt = 300` and `erf.fixed_dt = 10`, one `max_step` is thirty ERF
-steps and one ocean step, about ten minutes on sixteen ranks. Three settings that
-differ from ERF's and REMORA's defaults are load-bearing and are explained in
+Cadence and stability: `max_step` counts ocean steps. With the oneway, state
+and flux decks' `remora.fixed_dt = 300` and `erf.fixed_dt = 10`, one `max_step`
+is thirty ERF steps and one ocean step, about ten minutes on sixteen ranks.
+`inputs_OCCAMS_maximal_1day` runs the ocean at the ROMS `ocean.in` step of
+15 s instead, so its one day is `max_step = 5760`. Three settings that differ
+from ERF's and REMORA's defaults are load-bearing and are explained in
 `translation_map.tsv`:
 
 - `erf.vert_implicit_fac = 1 1 1` in `inputs_ERF` makes the PBL vertical
@@ -185,12 +230,12 @@ differ from ERF's and REMORA's defaults are load-bearing and are explained in
   levels. ERF's default rebuilds a grid from the 20 m surface layer that is about
   three times finer than WRF's between 500 m and 2 km, and resolved afternoon
   thermals over the Nevada desert then reach the vertical CFL limit at ERF step
-  64. The boundary cache depends on the levels, so move `erfbdy` aside whenever
-  this flag changes.
-- `remora.ndtfast = 300` in each coupled deck keeps the barotropic step at the
-  1 s the ROMS `ocean.in` used. Inheriting the base deck's 15 with a 300 s step
-  makes it 20 s and the ocean's first step fails. Any deck that changes
-  `remora.fixed_dt` must scale `remora.ndtfast` with it.
+  64.
+- `remora.ndtfast = 300` in each 300 s coupled deck (15 in the 15 s maximal
+  deck) keeps the barotropic step at the 1 s the ROMS `ocean.in` used.
+  Inheriting the base deck's 15 with a 300 s step makes it 20 s and the ocean's
+  first step fails. Any deck that changes `remora.fixed_dt` must scale
+  `remora.ndtfast` with it.
 
 ---
 

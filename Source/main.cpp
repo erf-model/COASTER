@@ -14,8 +14,13 @@
 #include "ERF_Kokkos.H"
 #endif
 
+#ifdef ERF_USE_NETCDF
+#include <netcdf.h>
+#endif
+
 #include <algorithm>
 #include <cctype>
+#include <cfenv>
 #include <cmath>
 #include <cstring>
 #include <string>
@@ -24,6 +29,29 @@ std::string inputs_name;
 
 namespace
 {
+#ifdef ERF_USE_NETCDF
+// Start the NetCDF library, and with it HDF5, while floating-point traps are
+// held. HDF5 otherwise starts on the first NetCDF open, after amrex::Initialize
+// has enabled amrex.fpe_trap_*, and some HDF5 builds (cray-hdf5-parallel
+// 1.14.3) raise the invalid-operation flag while probing the native float
+// types. Both libraries start only once, so later opens do not repeat it.
+// fesetenv restores the trap settings and drops any flags raised here.
+// This must run after MPI is initialized so that parallel HDF5 shuts itself
+// down at MPI_Finalize.
+void
+InitializeNetCDFWithTrapsHeld ()
+{
+    std::fenv_t saved_env;
+    std::feholdexcept(&saved_env);
+    const int status = nc_initialize();
+    std::fesetenv(&saved_env);
+    if (status != NC_NOERR) {
+        amrex::Abort(std::string("nc_initialize failed: ") + nc_strerror(status));
+    }
+}
+#endif
+
+
 struct RestartState
 {
     bool active = false;
@@ -131,6 +159,10 @@ int
 main (int argc, char* argv[])
 {
     amrex::Initialize(argc, argv);
+
+#ifdef ERF_USE_NETCDF
+    InitializeNetCDFWithTrapsHeld();
+#endif
 
     if (argc < 2) {
         amrex::Abort("No input file provided."
@@ -402,6 +434,24 @@ main (int argc, char* argv[])
             use_two_way_coupling = false;
         } else {
             amrex::Abort("Unknown driver.coupling_direction. Valid values: ERFtoREMORA, two_way.");
+        }
+
+        // The surface current, like the SST, is a two-way lane that ERF has to expect.
+        // ERF's own switch follows the driver's, so that the two cannot disagree: ERF
+        // waiting for a current the driver never sends would abort at the first exchange.
+        {
+            amrex::ParmParse pp_driver_cur("driver");
+            bool couple_currents = false;
+            pp_driver_cur.query("couple_currents", couple_currents);
+            bool erf_coupled_currents = false;
+            pp_erf.query("use_coupled_currents", erf_coupled_currents);
+            if (erf_coupled_currents && !couple_currents) {
+                amrex::Abort("erf.use_coupled_currents is set, but the driver sends no current. "
+                             "Set driver.couple_currents = true instead.");
+            }
+            if (couple_currents && use_two_way_coupling) {
+                pp_erf.add("use_coupled_currents", 1);
+            }
         }
 
         amrex::Vector<amrex::Real> atm_lo;

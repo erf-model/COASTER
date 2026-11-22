@@ -65,19 +65,6 @@ echo "driver: ${DRIVER}"
 echo "built : $(date -r "${DRIVER}" '+%Y-%m-%d %H:%M:%S')"
 echo
 
-# erfbdy is a CACHE of the wrfbdy boundary data, converted to ERF's levels by the
-# ERF build that first ran here. ERF reuses any existing erfbdy/Header without
-# checking who wrote it. A cache written by an older ERF is silently wrong: one
-# written before ERF f0ac0b388 carries a height-interpolation bug and blasts all
-# four lateral edges on the first step. Regenerate (move the
-# directory aside) after any ERF submodule update; the next run rewrites it from
-# wrfbdy in a few minutes.
-if [[ -f erfbdy/Header && erfbdy/Header -ot "${DRIVER}" ]]; then
-    echo "WARNING: erfbdy/Header ($(date -r erfbdy/Header '+%Y-%m-%d %H:%M')) predates the driver binary." >&2
-    echo "         If ERF changed since it was written, move erfbdy aside so it is regenerated." >&2
-    echo
-fi
-
 if ! command -v srun >/dev/null 2>&1; then
     echo "error: srun not found; are you in an allocation?" >&2
     exit 1
