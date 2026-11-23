@@ -224,33 +224,9 @@ main (int argc, char* argv[])
 
         amrex::ParmParse pp_driver("driver");
 
-        int max_grid_size = default_max_grid_size;
         int ocean_steps = 2;
         std::string atm2ocn_mode = "state";
         std::string coupling_direction;
-
-        // The coupled interface layout is a horizontal z=0 slab, so the
-        // divisibility constraint that motivated the AMR fallback is really an
-        // x/y concern. We still inherit all three AMR max-grid knobs here so
-        // driver.max_grid_size[_x/_y/_z] behaves like a normal override of the
-        // canonical AMR defaults.
-        pp_amr.query("max_grid_size", max_grid_size);
-        int max_grid_size_x = max_grid_size;
-        int max_grid_size_y = max_grid_size;
-        int max_grid_size_z = max_grid_size;
-        pp_amr.query("max_grid_size_x", max_grid_size_x);
-        pp_amr.query("max_grid_size_y", max_grid_size_y);
-        pp_amr.query("max_grid_size_z", max_grid_size_z);
-        const bool has_driver_max_grid_size = pp_driver.query("max_grid_size", max_grid_size);
-        if (has_driver_max_grid_size) {
-            max_grid_size_x = max_grid_size;
-            max_grid_size_y = max_grid_size;
-            max_grid_size_z = max_grid_size;
-        }
-        pp_driver.query("max_grid_size_x", max_grid_size_x);
-        pp_driver.query("max_grid_size_y", max_grid_size_y);
-        pp_driver.query("max_grid_size_z", max_grid_size_z);
-        const amrex::IntVect driver_max_grid_size(max_grid_size_x, max_grid_size_y, max_grid_size_z);
 
         pp_driver.query("atm2ocn_mode", atm2ocn_mode);
         pp_driver.get("coupling_direction", coupling_direction);
@@ -331,6 +307,12 @@ main (int argc, char* argv[])
             amrex::Print() << "WARNING: driver.synthetic_only is retired and ignored; "
                            << "synthetic-only mode has been removed.\n";
         }
+        for (const char* key : {"max_grid_size", "max_grid_size_x", "max_grid_size_y", "max_grid_size_z"}) {
+            if (pp_driver.contains(key)) {
+                amrex::Print() << "WARNING: driver." << key << " is retired and ignored; "
+                               << "the exchange uses the solvers' own grids, so set amr.max_grid_size instead.\n";
+            }
+        }
 
         auto lowercase = [](std::string value) {
             std::transform(value.begin(), value.end(), value.begin(),
@@ -393,8 +375,7 @@ main (int argc, char* argv[])
                        << " exchange_interval=" << exchange_interval
                        << " atm_steps_per_exchange=" << cadence.atmosphere_steps
                        << " ocean_steps_per_exchange=" << cadence.ocean_steps
-                       << " ocean_steps=" << ocean_steps
-                       << " driver_max_grid_size=" << driver_max_grid_size;
+                       << " ocean_steps=" << ocean_steps;
         if (restart_state.active) {
             amrex::Print() << " restored_time=" << restart_state.restored_time
                            << " completed_ocean_steps=" << restart_state.completed_ocean_steps
@@ -550,7 +531,7 @@ main (int argc, char* argv[])
         erf_remora::CoasterMBContainer container(
             atm_rb, n_cell_atm, ocn_rb, n_cell_ocn,
             max_level, coord, ref_ratio, is_periodic,
-            driver_max_grid_size, erf_dt, ocean_macro_dt,
+            erf_dt, ocean_macro_dt,
             cadence.atmosphere_steps, cadence.ocean_steps,
             atm2ocn_contract, use_two_way_coupling);
         container.SetOceanFrameStopTime(ocean_frame_stop_time);

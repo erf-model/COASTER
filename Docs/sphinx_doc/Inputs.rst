@@ -261,21 +261,6 @@ Debugging
      - Inject the NaN after the post-pack check, so only the ``driver.v = 1``
        validation can catch it. Atmosphere-to-ocean lanes only.
 
-Parallel layout
-^^^^^^^^^^^^^^^
-
-.. list-table::
-   :header-rows: 1
-   :widths: 32 18 50
-
-   * - Parameter
-     - Default
-     - Meaning
-   * - ``driver.max_grid_size``, ``driver.max_grid_size_x``,
-       ``driver.max_grid_size_y``, ``driver.max_grid_size_z``
-     - ``amr.max_grid_size``
-     - Currently has no effect on the exchange; see :ref:`ParallelLayout`.
-
 Retired parameters
 ------------------
 
@@ -290,5 +275,8 @@ These keys appear in older decks and no longer exist:
    ``ParmParse`` ignores unknown keys silently, so an old deck runs and
    disregards them without saying so.
 
-``driver.coupled_one_step`` and ``driver.synthetic_only`` are still
-recognized: the driver ignores them and prints a warning.
+``driver.coupled_one_step``, ``driver.synthetic_only`` and
+``driver.max_grid_size`` (with its ``_x``, ``_y`` and ``_z`` variants) are
+still recognized: the driver ignores them and prints a warning. The exchange
+uses the solvers' own grids, so set ``amr.max_grid_size`` instead (see
+:ref:`ParallelLayout`).
