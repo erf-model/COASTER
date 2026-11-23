@@ -51,7 +51,7 @@ If one grid's longitudes are on [-180, 180] and the other's on [0, 360], the
 driver shifts ERF's longitudes to match REMORA's convention.
 
 Weights are built rank-locally. Because the two solvers distribute their
-boxes differently, the driver first copies the inputs each box needs from the
+boxes differently, in the spherical frame the driver first copies the inputs each box needs from the
 other solver's layout (the "staged" region): the overlapping ERF region for
 each REMORA box, and the overlapping REMORA corners and wet mask for each ERF
 box. See :ref:`ParallelLayout`.

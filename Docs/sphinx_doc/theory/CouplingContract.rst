@@ -41,6 +41,95 @@ In a two-way run, REMORA sends:
 * With ``driver.couple_currents = true``, the surface current ``Uoce`` and
   ``Voce``.
 
+Lane reference
+--------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 14 14 22 20 30
+
+   * - Lane
+     - Contract
+     - Units
+     - REMORA key
+     - Meaning
+   * - ``Uwind``, ``Vwind``
+     - state
+     - m s\ :sup:`-1`
+     - ``uwind_type``, ``vwind_type``
+     - Eastward and northward near-surface wind
+   * - ``Patm``
+     - state
+     - Pa
+     - ``pair_type``
+     - Surface air pressure
+   * - ``Qair``
+     - state
+     - kg kg\ :sup:`-1` or 0–1
+     - ``qair_type``
+     - Near-surface humidity; ERF does not currently fill it
+   * - ``Tair``
+     - state
+     - K
+     - ``tair_type``
+     - Near-surface air temperature
+   * - ``cloud``
+     - state
+     - 0–1
+     - ``cloud_type``
+     - Cloud fraction
+   * - ``rain``
+     - both
+     - kg m\ :sup:`-2` s\ :sup:`-1`
+     - ``rain_type``
+     - Precipitation rate; see :ref:`sec:RainLane`
+   * - ``SWrad``
+     - both
+     - W m\ :sup:`-2`
+     - ``swrad_type``
+     - Shortwave radiation
+   * - ``LWrad``
+     - both
+     - W m\ :sup:`-2`
+     - ``lwrad_type``
+     - Downward longwave radiation
+   * - ``tau_x``, ``tau_y``
+     - flux
+     - N m\ :sup:`-2`
+     -
+     - Eastward and northward surface stress
+   * - ``SHflux``
+     - flux
+     - W m\ :sup:`-2`
+     -
+     - Sensible heat flux
+   * - ``LHflux``
+     - flux
+     - W m\ :sup:`-2`
+     -
+     - Latent heat flux
+   * - ``evap``
+     - flux
+     - kg m\ :sup:`-2` s\ :sup:`-1`
+     -
+     - Evaporation rate
+   * - ``SST``
+     - two-way
+     - K
+     -
+     - Sea-surface temperature (REMORA's top-level temperature)
+   * - ``Uoce``, ``Voce``
+     - two-way
+     - m s\ :sup:`-1`
+     -
+     - Eastward and northward surface current; with
+       ``driver.couple_currents`` only
+
+The REMORA key is the ``remora.<key>`` that configures that forcing in a
+REMORA deck; setting it keeps the lane with REMORA (see
+:ref:`sec:LaneProvenance`). REMORA interprets ``Qair`` as specific humidity
+or as a relative-humidity fraction depending on its magnitude.
+
 .. _sec:SurfaceCurrents:
 
 Surface currents
