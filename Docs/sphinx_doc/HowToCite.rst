@@ -22,8 +22,12 @@ See the `ERF documentation
 REMORA
 ------
 
-Klion et al. (2025), the REMORA model paper. See the `REMORA repository
-<https://github.com/remora-ocean/REMORA>`_ for the current citation.
+Klion et al. (2025). REMORA: Regional Modeling of Oceans Refined Adaptively
+(built on AMReX). *Journal of Open Source Software*, 10(110), 7958.
+https://doi.org/10.21105/joss.07958
+
+See the `REMORA repository <https://github.com/remora-ocean/REMORA>`_ for a
+BibTeX entry.
 
 AMReX
 -----
