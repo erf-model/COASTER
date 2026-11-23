@@ -3,12 +3,12 @@
 #include <iostream>
 #include <limits>
 using erf_remora::CoupledCadence;
-void require(bool condition) { if (!condition) std::abort(); }
-template<class F> void rejects(F f) {
+void require (bool condition) { if (!condition) std::abort(); }
+template<class F> void rejects (F f) {
     try { f(); } catch (const std::invalid_argument&) { return; }
     std::abort();
 }
-int main() {
+int main () {
     for (double exchange : {300., 600.}) {
         const auto c = CoupledCadence::make(10, 15, exchange);
         require(c.atmosphere_steps == exchange/10 && c.ocean_steps == exchange/15);

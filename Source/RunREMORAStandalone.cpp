@@ -7,7 +7,7 @@
 namespace erf_remora
 {
 void*
-CreateREMORASolver(const CoasterMBContainer& container)
+CreateREMORASolver (const CoasterMBContainer& container)
 {
     return static_cast<void*>(new REMORA(
         container.GetOcnRealBox(),
@@ -20,13 +20,13 @@ CreateREMORASolver(const CoasterMBContainer& container)
 }
 
 void
-DestroyREMORASolver(void* remora_handle) noexcept
+DestroyREMORASolver (void* remora_handle) noexcept
 {
     delete static_cast<REMORA*>(remora_handle);
 }
 
 void
-ConfigureREMORADriverAtmosToOceanCoupling(void* remora_handle,
+ConfigureREMORADriverAtmosToOceanCoupling (void* remora_handle,
                                           bool use_coupling_driver,
                                           bool use_two_way_coupling,
                                           bool use_state_contract)
@@ -39,13 +39,13 @@ ConfigureREMORADriverAtmosToOceanCoupling(void* remora_handle,
 }
 
 void
-SetREMORAStartTime(void* remora_handle, amrex::Real time)
+SetREMORAStartTime (void* remora_handle, amrex::Real time)
 {
     static_cast<REMORA*>(remora_handle)->SetStartTime(time);
 }
 
 void
-SetREMORADriverAtmosToOceanStateContract(void* remora_handle,
+SetREMORADriverAtmosToOceanStateContract (void* remora_handle,
                                          bool use_state_contract)
 {
     const auto mode = use_state_contract
@@ -55,13 +55,13 @@ SetREMORADriverAtmosToOceanStateContract(void* remora_handle,
 }
 
 void
-InitREMORASolver(void* remora_handle)
+InitREMORASolver (void* remora_handle)
 {
     static_cast<REMORA*>(remora_handle)->InitData();
 }
 
 void
-REMORAGetAtmosToOceanRhoLayout(void* remora_handle,
+REMORAGetAtmosToOceanRhoLayout (void* remora_handle,
                                amrex::BoxArray& ba,
                                amrex::DistributionMapping& dm)
 {
@@ -69,7 +69,7 @@ REMORAGetAtmosToOceanRhoLayout(void* remora_handle,
 }
 
 void
-REMORAGetAtmosToOceanPsiCoordinates(void* remora_handle,
+REMORAGetAtmosToOceanPsiCoordinates (void* remora_handle,
                                     const amrex::MultiFab** x_psi,
                                     const amrex::MultiFab** y_psi)
 {
@@ -81,7 +81,7 @@ REMORAGetAtmosToOceanPsiCoordinates(void* remora_handle,
 }
 
 void
-REMORAGetAtmosToOceanPsiLonLat(void* remora_handle,
+REMORAGetAtmosToOceanPsiLonLat (void* remora_handle,
                                const amrex::MultiFab** lon_psi,
                                const amrex::MultiFab** lat_psi)
 {
@@ -93,7 +93,7 @@ REMORAGetAtmosToOceanPsiLonLat(void* remora_handle,
 }
 
 void
-REMORAGetMasks(void* remora_handle,
+REMORAGetMasks (void* remora_handle,
               const amrex::MultiFab** mskr,
               const amrex::MultiFab** msku,
               const amrex::MultiFab** mskv)
@@ -108,7 +108,7 @@ REMORAGetMasks(void* remora_handle,
 }
 
 void
-REMORAPackSurfaceState(void* remora_handle,
+REMORAPackSurfaceState (void* remora_handle,
                        amrex::Vector<amrex::MultiFab*>& state,
                        amrex::Real time,
                        const amrex::MultiFab* weight_o2a_mf,
@@ -121,7 +121,7 @@ REMORAPackSurfaceState(void* remora_handle,
 }
 
 void
-REMORAPackSurfaceCurrents(void* remora_handle,
+REMORAPackSurfaceCurrents (void* remora_handle,
                           amrex::MultiFab& east_dst,
                           amrex::MultiFab& north_dst,
                           const amrex::MultiFab* weight_o2a_mf,
@@ -134,7 +134,7 @@ REMORAPackSurfaceCurrents(void* remora_handle,
 }
 
 void
-REMORAGetDeckConfiguredAtmosLanes(void* remora_handle,
+REMORAGetDeckConfiguredAtmosLanes (void* remora_handle,
                                   amrex::Vector<int>& deck_configured)
 {
     deck_configured.clear();
@@ -148,14 +148,14 @@ REMORAGetDeckConfiguredAtmosLanes(void* remora_handle,
 }
 
 void
-SetREMORALongwaveFromDriver(void* remora_handle)
+SetREMORALongwaveFromDriver (void* remora_handle)
 {
     if (remora_handle == nullptr) { return; }
     static_cast<REMORA*>(remora_handle)->SetLongwaveFromDriver();
 }
 
 void
-REMORAApplyAtmosphericStates(void* remora_handle,
+REMORAApplyAtmosphericStates (void* remora_handle,
                              const amrex::Vector<amrex::MultiFab*>& states,
                              amrex::Real time)
 {
@@ -163,7 +163,7 @@ REMORAApplyAtmosphericStates(void* remora_handle,
 }
 
 void
-REMORAApplyAtmosphericFluxes(void* remora_handle,
+REMORAApplyAtmosphericFluxes (void* remora_handle,
                              const amrex::Vector<amrex::MultiFab*>& states,
                              amrex::Real time)
 {
@@ -171,13 +171,13 @@ REMORAApplyAtmosphericFluxes(void* remora_handle,
 }
 
 amrex::Real
-REMORAEvolveOneStep(void* remora_handle, amrex::Real time, amrex::Real dt_request)
+REMORAEvolveOneStep (void* remora_handle, amrex::Real time, amrex::Real dt_request)
 {
     return static_cast<REMORA*>(remora_handle)->EvolveOneStep(time, dt_request);
 }
 
 void
-REMORAWriteAtFinalTime(void* remora_handle)
+REMORAWriteAtFinalTime (void* remora_handle)
 {
     return static_cast<REMORA*>(remora_handle)->WriteAtFinalTime();
 }
