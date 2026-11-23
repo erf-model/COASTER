@@ -6,17 +6,16 @@
 # and would fail here as "Unknown directive type" without sphinx_design, which
 # is a hard error under the -W this tree is verified with.
 #
-# myst_parser is loaded because this repository's existing documentation is
-# Markdown (README.md, INSTALL.md, Exec/README.md, Docs/*.md), so those pages
-# can be included directly rather than converted to reStructuredText.
+# Pages are written in reStructuredText, as in ERF and REMORA. myst_parser
+# stays loaded so a Markdown page can still be included where that is simpler.
 #
 # Full reference: https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 # -- Project information -----------------------------------------------------
 
-project = 'ERF-REMORA Driver'
-copyright = '2026, ERF-REMORA driver development team'
-author = 'ERF-REMORA driver development team'
+project = 'COASTER'
+copyright = '2026, COASTER development team'
+author = 'COASTER development team'
 
 # Hardcoded because the repository has no tags to derive from. Castro and AMReX
 # both compute this (get_version() / get_amrex_version()); switch to a
@@ -82,11 +81,11 @@ html_static_path = ['_static']
 # The RTD theme clips wide tables; the driver.* parameter reference is one.
 # Both AMReX and Castro ship an override for exactly this.
 html_css_files = ['theme_overrides.css']
-htmlhelp_basename = 'ERFREMORAdriverdoc'
+htmlhelp_basename = 'COASTERdoc'
 
 # -- Options for LaTeX output ------------------------------------------------
 
 latex_documents = [
-    (root_doc, 'ERFREMORAdriver.tex', 'ERF-REMORA Driver Documentation',
+    (root_doc, 'COASTER.tex', 'COASTER Documentation',
      author, 'manual'),
 ]

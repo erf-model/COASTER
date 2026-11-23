@@ -1,36 +1,68 @@
-.. ERF-REMORA Driver documentation master file.
+.. COASTER documentation master file.
 
-ERF-REMORA Driver
-=================
+COASTER
+=======
 
-This repository builds a coupled driver that advances ERF (atmosphere) and
-REMORA (ocean) in one executable. The driver owns the coupling clock, the
-per-variable exchange **lanes** and the caches behind them, and the pack/apply
-calls that move state between the two solvers.
+COASTER couples the atmosphere model `ERF <https://github.com/erf-model/ERF>`_
+and the ocean model `REMORA <https://github.com/remora-ocean/REMORA>`_ in a
+single executable. A driver owns the coupling clock, remaps the exchanged
+fields between the two grids, and moves surface state and fluxes between the
+solvers. ERF and REMORA never call each other directly.
 
-ERF and REMORA are documented in their own repositories. This documentation
-covers only what the driver itself owns: the coupling contract, the
-``driver.*`` runtime controls, the superbuild, the exchange diagnostics, and
-the coupled test suite. Anything already documented upstream is referenced
-there rather than restated here.
+ERF, REMORA and the `AMReX <https://github.com/AMReX-Codes/amrex>`_ framework
+they are built on each have their own documentation. This documentation covers
+what COASTER adds: how a coupled run is built and configured, which fields
+cross between the models and how, the remapping and time-coupling algorithms,
+and the assumptions behind them. Anything already documented upstream is
+summarized and linked rather than repeated.
 
-* ERF documentation: https://erf.readthedocs.io/en/latest/
-* REMORA documentation: https://remora-ocean.readthedocs.io/en/latest/
-
-.. note::
-
-   Page migration is not complete. ``README.md``, ``INSTALL.md`` and
-   ``Exec/README.md`` are not in the toctree below because they live at the
-   repository root, outside this source tree, and a toctree entry that
-   points above the source directory is unreadable and fails the ``-W``
-   build. MyST is configured, so they can be added as-is once they are
-   reachable from here.
+* `ERF documentation <https://erf.readthedocs.io/en/latest/>`_
+* `REMORA documentation <https://remora-ocean.readthedocs.io/en/latest/>`_
+* `AMReX documentation <https://amrex-codes.github.io/amrex/docs_html/>`_
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents
+   :caption: USER GUIDE
+   :maxdepth: 1
 
+   GettingStarted
+   Building
+   Inputs
+   ExampleProblems
+   Output
    Glossary
+   HowToCite
+
+.. toctree::
+   :caption: THEORY
+   :maxdepth: 1
+
+   theory/CouplingOverview
+   theory/CouplingContract
+   theory/TimeCoupling
+   theory/Remapping
+   theory/Assumptions
+
+.. toctree::
+   :caption: IMPLEMENTATION
+   :maxdepth: 1
+
+   CodeStructure
+   ParallelLayout
+   CheckpointRestart
+   Diagnostics
+
+.. toctree::
+   :caption: COASTER vs COAWST
+   :maxdepth: 1
+
+   COASTERvsCOAWST
+
+.. toctree::
+   :caption: TESTING
+   :maxdepth: 1
+
+   Testing
+   Verification
 
 Indices and tables
 ==================

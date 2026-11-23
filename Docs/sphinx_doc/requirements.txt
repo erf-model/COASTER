@@ -1,4 +1,4 @@
-# Sphinx dependencies for the ERF-REMORA driver documentation.
+# Sphinx dependencies for the COASTER documentation.
 #
 # Bounds carry reasons, following WarpX's practice rather than bare numbers.
 #
