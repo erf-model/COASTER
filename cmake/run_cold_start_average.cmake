@@ -79,7 +79,7 @@ else()
   list(APPEND _common_args "erf.radiation_model=None")
 endif()
 
-# Lane vocabularies and characters, from Source/ERFRemoraCouplingContract.H.
+# Lane vocabularies and characters, from Source/CoasterCouplingContract.H.
 set(_flux_lanes_flux_contract tau_x tau_y SHflux LHflux SWrad LWrad evap)
 set(_state_lanes_state_contract Uwind Vwind Patm Qair Tair cloud)
 set(_flux_lanes_state_contract SWrad LWrad)

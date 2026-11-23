@@ -1,7 +1,7 @@
 #ifndef COASTER_MULTIBLOCK_CONTAINER_H_
 #define COASTER_MULTIBLOCK_CONTAINER_H_
 
-#include "ERFRemoraCouplingContract.H"
+#include "CoasterCouplingContract.H"
 
 #include <AMReX_BoxArray.H>
 #include <AMReX_DistributionMapping.H>
@@ -55,7 +55,7 @@ struct RemapStagingPlan;
 struct REMORAStagingPlan;
 
 /**
- * ERFRemoraMultiBlockContainer is the driver-owned "conductor" object.
+ * CoasterMBContainer is the driver-owned "conductor" object.
  *
  * Driver Responsibilities:
  * 1. Owns topology for both atmosphere (ERF) and ocean (REMORA).
@@ -64,10 +64,10 @@ struct REMORAStagingPlan;
  * 4. Owns the source-to-destination staging plan (GetRemapStagingPlan()) that the
  *    solver-side remap apply uses to route source data onto the destination layout.
  */
-class ERFRemoraMultiBlockContainer
+class CoasterMBContainer
 {
 public:
-    ERFRemoraMultiBlockContainer(const amrex::RealBox& atm_rb,
+    CoasterMBContainer(const amrex::RealBox& atm_rb,
                                   const amrex::Vector<int>& n_cell_atm,
                                   const amrex::RealBox& ocn_rb,
                                   const amrex::Vector<int>& n_cell_ocn,
@@ -82,7 +82,7 @@ public:
                                   int ocean_steps_per_exchange,
                                   coupling::AtmosToOceanContract atm2ocn_contract,
                                   bool use_two_way_coupling);
-    ~ERFRemoraMultiBlockContainer();
+    ~CoasterMBContainer();
 
     void InitializeBlocks();
     void InitializeSolvers();
@@ -194,7 +194,7 @@ private:
     void SelectAtmosToOceanActiveView();
 
     // Decide once who owns each atmos->ocean lane (see LaneSource in
-    // ERFRemoraCouplingContract.H) and reconfigure REMORA for the lanes ERF
+    // CoasterCouplingContract.H) and reconfigure REMORA for the lanes ERF
     // takes over. Must run between ERF InitData, which allocates the radiation
     // fields the capability query reads, and REMORA InitData, which opens
     // NetCDF handles off the selectors this may change.

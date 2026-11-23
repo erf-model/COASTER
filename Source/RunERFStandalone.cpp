@@ -5,7 +5,7 @@
 namespace erf_remora
 {
 void*
-CreateERFSolver(const ERFRemoraMultiBlockContainer& container)
+CreateERFSolver(const CoasterMBContainer& container)
 {
     return static_cast<void*>(new ERF(container.GetAtmRealBox(),
                                       container.GetMaxLevel(),

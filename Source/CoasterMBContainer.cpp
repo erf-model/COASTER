@@ -1,4 +1,4 @@
-#include "ERFRemoraMultiBlockContainer.H"
+#include "CoasterMBContainer.H"
 #include "StandaloneSolverRuns.H"
 
 #include <AMReX.H>
@@ -685,7 +685,7 @@ struct REMORAStagingPlan
     int empty_boxes = 0;
 };
 
-ERFRemoraMultiBlockContainer::~ERFRemoraMultiBlockContainer()
+CoasterMBContainer::~CoasterMBContainer()
 {
     if (m_erf != nullptr) {
         DestroyERFSolver(m_erf);
@@ -697,7 +697,7 @@ ERFRemoraMultiBlockContainer::~ERFRemoraMultiBlockContainer()
     }
 }
 
-ERFRemoraMultiBlockContainer::ERFRemoraMultiBlockContainer (
+CoasterMBContainer::CoasterMBContainer (
     const amrex::RealBox& atm_rb,
     const amrex::Vector<int>& n_cell_atm,
     const amrex::RealBox& ocn_rb,
@@ -788,7 +788,7 @@ ERFRemoraMultiBlockContainer::ERFRemoraMultiBlockContainer (
 
     DriverPrintHeader(
         m_driver_verbose,
-        "Construct ERFRemoraMultiBlockContainer",
+        "Construct CoasterMBContainer",
         "Driver topology parsed; base slab geometry and contract metadata are being recorded.");
     DriverPrintLine(
         m_driver_verbose,
@@ -801,7 +801,7 @@ ERFRemoraMultiBlockContainer::ERFRemoraMultiBlockContainer (
 }
 
 void
-ERFRemoraMultiBlockContainer::InitializeSolvers ()
+CoasterMBContainer::InitializeSolvers ()
 {
     DriverPrintHeader(
         m_driver_verbose,
@@ -885,7 +885,7 @@ ERFRemoraMultiBlockContainer::InitializeSolvers ()
 }
 
 void
-ERFRemoraMultiBlockContainer::SetLandMaskFromDomainOverlap(const amrex::iMultiFab* erf_is_land)
+CoasterMBContainer::SetLandMaskFromDomainOverlap(const amrex::iMultiFab* erf_is_land)
 {
     if (erf_is_land == nullptr) {
         if (m_driver_verbose > 0) {
@@ -941,7 +941,7 @@ ERFRemoraMultiBlockContainer::SetLandMaskFromDomainOverlap(const amrex::iMultiFa
 }
 
 void
-ERFRemoraMultiBlockContainer::PrefillAtmosToOceanFallbacks ()
+CoasterMBContainer::PrefillAtmosToOceanFallbacks ()
 {
     // Only the flux lanes need seeding, and only with zero.
     //
@@ -980,13 +980,13 @@ ERFRemoraMultiBlockContainer::PrefillAtmosToOceanFallbacks ()
 }
 
 void
-ERFRemoraMultiBlockContainer::SetOceanFrameStopTime (amrex::Real ocean_frame_stop_time)
+CoasterMBContainer::SetOceanFrameStopTime (amrex::Real ocean_frame_stop_time)
 {
     m_ocean_frame_stop_time = ocean_frame_stop_time;
 }
 
 void
-ERFRemoraMultiBlockContainer::SetAtmosphereTick (long long atm_tick)
+CoasterMBContainer::SetAtmosphereTick (long long atm_tick)
 {
     if (atm_tick < 0) {
         amrex::Abort("Cannot restore a negative atmosphere tick in the coupled driver.");
@@ -995,7 +995,7 @@ ERFRemoraMultiBlockContainer::SetAtmosphereTick (long long atm_tick)
 }
 
 void
-ERFRemoraMultiBlockContainer::InitializeBlocks ()
+CoasterMBContainer::InitializeBlocks ()
 {
     DriverPrintHeader(
         m_driver_verbose,
@@ -1081,7 +1081,7 @@ ERFRemoraMultiBlockContainer::InitializeBlocks ()
 }
 
 void
-ERFRemoraMultiBlockContainer::AllocateCaches ()
+CoasterMBContainer::AllocateCaches ()
 {
     // Only reachable from InitializeBlocks(), which asserts both solvers exist.
     AMREX_ALWAYS_ASSERT_WITH_MESSAGE(
@@ -1092,7 +1092,7 @@ ERFRemoraMultiBlockContainer::AllocateCaches ()
 }
 
 void
-ERFRemoraMultiBlockContainer::AllocateCachesFromSolverLayouts ()
+CoasterMBContainer::AllocateCachesFromSolverLayouts ()
 {
     // Every atmos->ocean lane, TauX/TauY included, lives on the REMORA rho
     // layout: vectors cross as eastward/northward components at rho points and
@@ -1213,7 +1213,7 @@ ERFRemoraMultiBlockContainer::AllocateCachesFromSolverLayouts ()
 }
 
 bool
-ERFRemoraMultiBlockContainer::TimeAverageAtmosToOceanLane (int global_idx) const
+CoasterMBContainer::TimeAverageAtmosToOceanLane (int global_idx) const
 {
     const bool flux_character =
         global_idx == coupling::Rain || global_idx == coupling::SWrad ||
@@ -1224,7 +1224,7 @@ ERFRemoraMultiBlockContainer::TimeAverageAtmosToOceanLane (int global_idx) const
 }
 
 bool
-ERFRemoraMultiBlockContainer::AtmosToOceanAveragingActive () const
+CoasterMBContainer::AtmosToOceanAveragingActive () const
 {
     for (int global_idx : m_atmos_to_ocean_active_indices) {
         if (TimeAverageAtmosToOceanLane(global_idx)) {
@@ -1235,7 +1235,7 @@ ERFRemoraMultiBlockContainer::AtmosToOceanAveragingActive () const
 }
 
 void
-ERFRemoraMultiBlockContainer::ResetAtmosToOceanAccumulators ()
+CoasterMBContainer::ResetAtmosToOceanAccumulators ()
 {
     AMREX_ALWAYS_ASSERT_WITH_MESSAGE(
         !m_atmos_to_ocean_accumulator_storage.empty(),
@@ -1248,7 +1248,7 @@ ERFRemoraMultiBlockContainer::ResetAtmosToOceanAccumulators ()
 }
 
 void
-ERFRemoraMultiBlockContainer::AccumulateAtmosToOcean (amrex::Real weight,
+CoasterMBContainer::AccumulateAtmosToOcean (amrex::Real weight,
                                                      amrex::Real steps_since_last_sample)
 {
     // weight is the sample's trapezoid weight. An accumulation-rate lane (rain)
@@ -1277,7 +1277,7 @@ ERFRemoraMultiBlockContainer::AccumulateAtmosToOcean (amrex::Real weight,
 }
 
 void
-ERFRemoraMultiBlockContainer::DrainAtmosToOceanAccumulators ()
+CoasterMBContainer::DrainAtmosToOceanAccumulators ()
 {
     AMREX_ALWAYS_ASSERT_WITH_MESSAGE(
         m_a2o_accum_weight > amrex::Real(0.0),
@@ -1306,7 +1306,7 @@ ERFRemoraMultiBlockContainer::DrainAtmosToOceanAccumulators ()
 }
 
 void
-ERFRemoraMultiBlockContainer::ValidateCouplingLayoutsFromSolvers () const
+CoasterMBContainer::ValidateCouplingLayoutsFromSolvers () const
 {
     // All integer-ratio assertions and layout validations have been removed
     // to support general non-conformal curvilinear grid coupling.
@@ -1322,7 +1322,7 @@ ERFRemoraMultiBlockContainer::ValidateCouplingLayoutsFromSolvers () const
 // weight set normalizes silently and would otherwise look like a clean run with
 // no forcing.
 void
-ERFRemoraMultiBlockContainer::NormalizeWeightsAndCheckConservation(amrex::MultiFab& weight_mf,
+CoasterMBContainer::NormalizeWeightsAndCheckConservation(amrex::MultiFab& weight_mf,
                                                                    const amrex::iMultiFab& index_mf,
                                                                    const amrex::MultiFab* wet_mask,
                                                                    const amrex::iMultiFab* donor_fill,
@@ -1810,7 +1810,7 @@ ExtendCornerMeshOneRing (amrex::MultiFab& node_mf, const amrex::Box& node_domain
 }
 
 void
-ERFRemoraMultiBlockContainer::BuildRemapWeights()
+CoasterMBContainer::BuildRemapWeights()
 {
     ResolveRemapFrame();
     ResolveDonorFillMode();
@@ -1859,7 +1859,7 @@ ERFRemoraMultiBlockContainer::BuildRemapWeights()
 // Write every remap array the exchanges read, for exact comparison of two runs
 // (driver.remap_dump_weights; see DumpFabArrayRaw). Collective.
 void
-ERFRemoraMultiBlockContainer::DumpRemapWeights () const
+CoasterMBContainer::DumpRemapWeights () const
 {
     using namespace amrex;
 
@@ -1891,7 +1891,7 @@ ERFRemoraMultiBlockContainer::DumpRemapWeights () const
 // addresses are 1-based, i fastest; the grids may carry a boundary ring (ROMS rho
 // points), so the index offset is half the dims difference. Collective.
 void
-ERFRemoraMultiBlockContainer::CompareWeightsWithSCRIP ()
+CoasterMBContainer::CompareWeightsWithSCRIP ()
 {
     using namespace amrex;
     if (m_scrip_weights_file.empty()) { return; }
@@ -2077,7 +2077,7 @@ ERFRemoraMultiBlockContainer::CompareWeightsWithSCRIP ()
 // SCRIP makes the same either/or choice from the grid file's `spherical` switch
 // (COAWST Lib/SCRIP_COAWST/read_roms.f).
 void
-ERFRemoraMultiBlockContainer::ResolveRemapFrame()
+CoasterMBContainer::ResolveRemapFrame()
 {
     using namespace amrex;
 
@@ -2169,7 +2169,7 @@ ERFRemoraMultiBlockContainer::ResolveRemapFrame()
 // is opt-in and says so loudly, and the shipped default is the one the
 // literature supports.
 void
-ERFRemoraMultiBlockContainer::ResolveDonorFillMode()
+CoasterMBContainer::ResolveDonorFillMode()
 {
     if (m_remap_donor_fill_request == "withhold") {
         m_remap_donor_fill_mode = DonorFillMode::Withhold;
@@ -2254,7 +2254,7 @@ ERFRemoraMultiBlockContainer::ResolveDonorFillMode()
 // Not handled, as before: a grid whose cells straddle a longitude wrap. The
 // average would be wrong there, and so would the clipping downstream.
 void
-ERFRemoraMultiBlockContainer::BuildERFCornerMesh()
+CoasterMBContainer::BuildERFCornerMesh()
 {
     using namespace amrex;
 
@@ -2412,7 +2412,7 @@ ERFRemoraMultiBlockContainer::BuildERFCornerMesh()
 // must be globally consistent, hence the reduction rather than a local
 // computation.
 void
-ERFRemoraMultiBlockContainer::BuildERFStagingPlan()
+CoasterMBContainer::BuildERFStagingPlan()
 {
     using namespace amrex;
 
@@ -2576,7 +2576,7 @@ ERFRemoraMultiBlockContainer::BuildERFStagingPlan()
 // footprint needs, and amrex::NonLocalBC moves that region onto the ERF
 // DistributionMapping. Only the rho mask is staged.
 void
-ERFRemoraMultiBlockContainer::BuildREMORAStagingPlan()
+CoasterMBContainer::BuildREMORAStagingPlan()
 {
     using namespace amrex;
 
@@ -2744,7 +2744,7 @@ ERFRemoraMultiBlockContainer::BuildREMORAStagingPlan()
 }
 
 void
-ERFRemoraMultiBlockContainer::BuildAtmosToOceanWeights()
+CoasterMBContainer::BuildAtmosToOceanWeights()
 {
     using namespace amrex;
 
@@ -3211,7 +3211,7 @@ ERFRemoraMultiBlockContainer::BuildAtmosToOceanWeights()
 }
 
 void
-ERFRemoraMultiBlockContainer::BuildOceanToAtmosWeights()
+CoasterMBContainer::BuildOceanToAtmosWeights()
 {
     using namespace amrex;
 
@@ -3597,7 +3597,7 @@ ERFRemoraMultiBlockContainer::BuildOceanToAtmosWeights()
 }
 
 void
-ERFRemoraMultiBlockContainer::FillOceanToAtmosGhosts ()
+CoasterMBContainer::FillOceanToAtmosGhosts ()
 {
     AMREX_ALWAYS_ASSERT_WITH_MESSAGE(
         m_geom.isPeriodic(0) == static_cast<bool>(m_is_periodic[0]) &&
@@ -3613,7 +3613,7 @@ ERFRemoraMultiBlockContainer::FillOceanToAtmosGhosts ()
 }
 
 void
-ERFRemoraMultiBlockContainer::PackOceanToAtmos (amrex::Vector<amrex::MultiFab*>& state,
+CoasterMBContainer::PackOceanToAtmos (amrex::Vector<amrex::MultiFab*>& state,
                                                 amrex::Real time)
 {
     // ERF land mask on the destination (ERF) layout: zeroes out land cells in
@@ -3635,7 +3635,7 @@ ERFRemoraMultiBlockContainer::PackOceanToAtmos (amrex::Vector<amrex::MultiFab*>&
 }
 
 void
-ERFRemoraMultiBlockContainer::FillAtmosToOceanGhosts ()
+CoasterMBContainer::FillAtmosToOceanGhosts ()
 {
     AMREX_ALWAYS_ASSERT_WITH_MESSAGE(
         m_geom_ocn.isPeriodic(0) == static_cast<bool>(m_is_periodic[0]) &&
@@ -3651,7 +3651,7 @@ ERFRemoraMultiBlockContainer::FillAtmosToOceanGhosts ()
 }
 
 void
-ERFRemoraMultiBlockContainer::PrintDiagnostics (const char* label,
+CoasterMBContainer::PrintDiagnostics (const char* label,
                              const amrex::Vector<amrex::MultiFab*>& fields,
                              const amrex::Vector<std::string>& names,
                              bool ocean_to_atmos) const
@@ -3725,7 +3725,7 @@ ERFRemoraMultiBlockContainer::PrintDiagnostics (const char* label,
 }
 
 void
-ERFRemoraMultiBlockContainer::ValidateFields (const char* label,
+CoasterMBContainer::ValidateFields (const char* label,
                                               const amrex::Vector<amrex::MultiFab*>& fields,
                                               const amrex::Vector<std::string>& names,
                                               amrex::Real time,
@@ -3818,7 +3818,7 @@ ERFRemoraMultiBlockContainer::ValidateFields (const char* label,
 }
 
 void
-ERFRemoraMultiBlockContainer::AbortOnNonFinite (const char* what,
+CoasterMBContainer::AbortOnNonFinite (const char* what,
                                                 const amrex::Vector<amrex::MultiFab*>& lanes,
                                                 const amrex::Vector<std::string>& names) const
 {
@@ -3834,7 +3834,7 @@ ERFRemoraMultiBlockContainer::AbortOnNonFinite (const char* what,
 }
 
 void
-ERFRemoraMultiBlockContainer::CheckDebugInjectNaNLane () const
+CoasterMBContainer::CheckDebugInjectNaNLane () const
 {
     if (m_debug_inject_nan_lane.empty()) { return; }
     const auto& o2a = m_ocean_to_atmos_names;
@@ -3856,7 +3856,7 @@ ERFRemoraMultiBlockContainer::CheckDebugInjectNaNLane () const
 }
 
 void
-ERFRemoraMultiBlockContainer::MaybeInjectDebugNaN (const amrex::Vector<amrex::MultiFab*>& lanes,
+CoasterMBContainer::MaybeInjectDebugNaN (const amrex::Vector<amrex::MultiFab*>& lanes,
                                                    const amrex::Vector<std::string>& names,
                                                    bool after_guard) const
 {
@@ -3889,7 +3889,7 @@ ERFRemoraMultiBlockContainer::MaybeInjectDebugNaN (const amrex::Vector<amrex::Mu
 }
 
 void
-ERFRemoraMultiBlockContainer::WriteExchangePlotfiles (amrex::Real o2a_time,
+CoasterMBContainer::WriteExchangePlotfiles (amrex::Real o2a_time,
                                                       amrex::Real a2o_time,
                                                       amrex::Real dt_ocn,
                                                       long long ocean_step) const
@@ -3932,7 +3932,7 @@ ERFRemoraMultiBlockContainer::WriteExchangePlotfiles (amrex::Real o2a_time,
 }
 
 void
-ERFRemoraMultiBlockContainer::WriteExchangePlotfile (
+CoasterMBContainer::WriteExchangePlotfile (
     const std::string& prefix,
     const amrex::Vector<amrex::MultiFab*>& fields,
     const amrex::Vector<std::string>& names,
@@ -3972,7 +3972,7 @@ ERFRemoraMultiBlockContainer::WriteExchangePlotfile (
 }
 
 void
-ERFRemoraMultiBlockContainer::WriteExchangeInfo (const std::string& plotfilename,
+CoasterMBContainer::WriteExchangeInfo (const std::string& plotfilename,
                                                  const amrex::Vector<amrex::MultiFab*>& fields,
                                                  const amrex::Vector<std::string>& names,
                                                  amrex::Real time,
@@ -4076,7 +4076,7 @@ ERFRemoraMultiBlockContainer::WriteExchangeInfo (const std::string& plotfilename
 }
 
 void
-ERFRemoraMultiBlockContainer::AdvanceBlocks (int ocean_steps)
+CoasterMBContainer::AdvanceBlocks (int ocean_steps)
 {
     // V1 Hard Invariants: Verify required solver instances are active
     if (!m_erf || !m_remora) {
@@ -4195,19 +4195,19 @@ ERFRemoraMultiBlockContainer::AdvanceBlocks (int ocean_steps)
 }
 
 amrex::Vector<amrex::MultiFab*>&
-ERFRemoraMultiBlockContainer::AtmosToOceanActiveCache ()
+CoasterMBContainer::AtmosToOceanActiveCache ()
 {
     return m_atmos_to_ocean_active;
 }
 
 const amrex::Vector<std::string>&
-ERFRemoraMultiBlockContainer::AtmosToOceanActiveNames () const
+CoasterMBContainer::AtmosToOceanActiveNames () const
 {
     return m_atmos_to_ocean_active_names;
 }
 
 coupling::AtmosToOceanContract
-ERFRemoraMultiBlockContainer::ActiveAtmosToOceanContract () const
+CoasterMBContainer::ActiveAtmosToOceanContract () const
 {
     return m_atmos_to_ocean_contract;
 }
@@ -4224,7 +4224,7 @@ PadTo (const std::string& text, std::size_t width)
 } // namespace
 
 void
-ERFRemoraMultiBlockContainer::ResolveAtmosToOceanLaneSources ()
+CoasterMBContainer::ResolveAtmosToOceanLaneSources ()
 {
     AMREX_ALWAYS_ASSERT_WITH_MESSAGE(
         m_erf != nullptr && m_remora != nullptr,
@@ -4410,7 +4410,7 @@ ERFRemoraMultiBlockContainer::ResolveAtmosToOceanLaneSources ()
 }
 
 void
-ERFRemoraMultiBlockContainer::PrintAtmosToOceanLaneProvenance () const
+CoasterMBContainer::PrintAtmosToOceanLaneProvenance () const
 {
     amrex::Print() << "Atmos->ocean lane provenance (configured mode="
                    << coupling::AtmosToOceanContractName(m_atmos_to_ocean_contract) << ")\n"
@@ -4439,7 +4439,7 @@ ERFRemoraMultiBlockContainer::PrintAtmosToOceanLaneProvenance () const
 }
 
 void
-ERFRemoraMultiBlockContainer::SelectAtmosToOceanActiveView ()
+CoasterMBContainer::SelectAtmosToOceanActiveView ()
 {
     const auto active_contract = ActiveAtmosToOceanContract();
     if (active_contract == coupling::AtmosToOceanContract::FluxPassing) {
@@ -4479,7 +4479,7 @@ ERFRemoraMultiBlockContainer::SelectAtmosToOceanActiveView ()
 }
 
 void
-ERFRemoraMultiBlockContainer::AdvanceBlocksWithCallbacks (const MutableStateFn& pack_surface_state,
+CoasterMBContainer::AdvanceBlocksWithCallbacks (const MutableStateFn& pack_surface_state,
                                                            const ConstStateFn& apply_ocean_surface_state,
                                                            const MutableStateFn& pack_atmos_states,
                                                            const ConstStateFn& apply_atmos_states,

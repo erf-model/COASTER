@@ -1,4 +1,4 @@
-#include "ERFRemoraMultiBlockContainer.H"
+#include "CoasterMBContainer.H"
 #include "CoupledRestartUtils.H"
 #include "CoupledCadence.H"
 #include "StandaloneSolverRuns.H"
@@ -547,7 +547,7 @@ main (int argc, char* argv[])
                 << "main.cpp is handing control to the coupled driver container.\n"
                 << "========================================================\n";
         }
-        erf_remora::ERFRemoraMultiBlockContainer container(
+        erf_remora::CoasterMBContainer container(
             atm_rb, n_cell_atm, ocn_rb, n_cell_ocn,
             max_level, coord, ref_ratio, is_periodic,
             driver_max_grid_size, erf_dt, ocean_macro_dt,

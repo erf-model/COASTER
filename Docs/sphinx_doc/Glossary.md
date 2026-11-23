@@ -18,7 +18,7 @@ should use the preferred term.
 **Lane** *(preferred; also seen as* layer*)*
 : One exchanged variable's slot in an exchange cache — `Uwind`, `SST`,
   `SHflux` and so on. Lanes are addressed by the index enums in
-  `Source/ERFRemoraCouplingContract.H`. A lane is *active* when the running
+  `Source/CoasterCouplingContract.H`. A lane is *active* when the running
   contract selects it, and allocated-but-inactive otherwise.
 
 **Cache**
