@@ -52,14 +52,9 @@ arrays, and each lives on one solver's layout:
 * The ocean-to-atmosphere cache and weights (two-way runs only) live on ERF's
   surface layout.
 
-So the exchange data is distributed as the destination solver's surface is.
-
-.. note::
-
-   ``driver.max_grid_size`` and its per-direction variants
-   (``driver.max_grid_size_x``, ``_y``, ``_z``) are read, and their value is
-   printed in the ``Coupled run plan`` line, but they currently have no effect:
-   the exchange layouts are taken from the solvers as described above.
+So the exchange data is distributed as the destination solver's surface is,
+and the exchange has no layout controls of its own: to change it, change the
+solvers' decomposition.
 
 Staging the remap inputs
 ------------------------

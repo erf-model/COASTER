@@ -706,7 +706,6 @@ CoasterMBContainer::CoasterMBContainer (
     int coord,
     const amrex::Vector<amrex::IntVect>& ref_ratio,
     const amrex::Array<int,AMREX_SPACEDIM>& is_periodic,
-    const amrex::IntVect& max_grid_size,
     amrex::Real erf_dt,
     amrex::Real ocean_dt,
     int atm_steps_per_exchange,
@@ -724,11 +723,12 @@ CoasterMBContainer::CoasterMBContainer (
       m_atmos_to_ocean_contract(atm2ocn_contract),
       m_use_two_way_coupling(use_two_way_coupling)
 {
-    // Interface slab: horizontal extent of the atmosphere at z = 0.
+    // Interface slab: horizontal extent of the atmosphere at z = 0. Only its extent
+    // is used until AllocateCachesFromSolverLayouts replaces it with ERF's layout
+    // in a two-way run, so it is not chopped.
     amrex::Box domain(amrex::IntVect(0, 0, 0),
                       amrex::IntVect(n_cell_atm[0]-1, n_cell_atm[1]-1, 0));
     m_ba.define(domain);
-    m_ba.maxSize(max_grid_size);
     m_dm.define(m_ba);
     PrintBoxArrayLayout("Driver constructor ocean->atmos slab", m_ba, m_dm);
 

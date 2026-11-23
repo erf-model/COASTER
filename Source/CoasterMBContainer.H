@@ -75,7 +75,6 @@ public:
                                   int coord,
                                   const amrex::Vector<amrex::IntVect>& ref_ratio,
                                   const amrex::Array<int,AMREX_SPACEDIM>& is_periodic,
-                                  const amrex::IntVect& max_grid_size,
                                   amrex::Real erf_dt,
                                   amrex::Real ocean_dt,
                                   int atm_steps_per_exchange,

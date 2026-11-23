@@ -19,9 +19,10 @@ cd Exec/Upwelling
 
 ## Documentation
 
-The user documentation is in `Docs/sphinx_doc`: building, inputs, the example
-problems, how to read the driver's output, the coupling contract, time
-coupling, remapping, and testing. Build it with:
+The user documentation is at <https://coaster-model.readthedocs.io/en/latest/>:
+building, inputs, the example problems, how to read the driver's output, the
+coupling contract, time coupling, remapping, and testing. Its source is in
+`Docs/sphinx_doc`; to build it locally:
 
 ```bash
 pip install -r Docs/sphinx_doc/requirements.txt
