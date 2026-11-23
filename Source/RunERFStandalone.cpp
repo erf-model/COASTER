@@ -5,7 +5,7 @@
 namespace erf_remora
 {
 void*
-CreateERFSolver(const CoasterMBContainer& container)
+CreateERFSolver (const CoasterMBContainer& container)
 {
     return static_cast<void*>(new ERF(container.GetAtmRealBox(),
                                       container.GetMaxLevel(),
@@ -17,14 +17,14 @@ CreateERFSolver(const CoasterMBContainer& container)
 }
 
 const amrex::BoxArray&
-ERF_Grids(void* erf_handle) noexcept
+ERF_Grids (void* erf_handle) noexcept
 {
     ERF* my_erf = (ERF*)(erf_handle);
     return my_erf->boxArray(0);
 }
 
 const amrex::DistributionMapping&
-ERF_DMap(void* erf_handle) noexcept
+ERF_DMap (void* erf_handle) noexcept
 {
     ERF* my_erf = (ERF*)(erf_handle);
     return my_erf->DistributionMap(0);
@@ -32,13 +32,13 @@ ERF_DMap(void* erf_handle) noexcept
 
 
 void
-DestroyERFSolver(void* erf_handle) noexcept
+DestroyERFSolver (void* erf_handle) noexcept
 {
     delete static_cast<ERF*>(erf_handle);
 }
 
 void
-ConfigureERFDriverAtmosToOceanCoupling(void* erf_handle,
+ConfigureERFDriverAtmosToOceanCoupling (void* erf_handle,
                                        bool use_coupling_driver,
                                        bool use_two_way_coupling,
                                        bool use_state_contract)
@@ -48,20 +48,20 @@ ConfigureERFDriverAtmosToOceanCoupling(void* erf_handle,
 }
 
 void
-SetERFDriverAtmosToOceanStateContract(void* erf_handle,
+SetERFDriverAtmosToOceanStateContract (void* erf_handle,
                                       bool use_state_contract)
 {
     static_cast<ERF*>(erf_handle)->SetDriverAtmosToOceanStateContract(use_state_contract);
 }
 
 void
-InitERFSolver(void* erf_handle)
+InitERFSolver (void* erf_handle)
 {
     static_cast<ERF*>(erf_handle)->InitData();
 }
 
 void
-ERFGetOceanToAtmosSurfaceLayout(void* erf_handle,
+ERFGetOceanToAtmosSurfaceLayout (void* erf_handle,
                                 amrex::BoxArray& ba,
                                 amrex::DistributionMapping& dm)
 {
@@ -69,7 +69,7 @@ ERFGetOceanToAtmosSurfaceLayout(void* erf_handle,
 }
 
 void
-ERFGetOceanToAtmosCellCenterLonLat(void* erf_handle,
+ERFGetOceanToAtmosCellCenterLonLat (void* erf_handle,
                                    const amrex::MultiFab** lon_cc,
                                    const amrex::MultiFab** lat_cc)
 {
@@ -81,7 +81,7 @@ ERFGetOceanToAtmosCellCenterLonLat(void* erf_handle,
 }
 
 void
-ERFGetLandMask(void* erf_handle, const amrex::iMultiFab** is_land)
+ERFGetLandMask (void* erf_handle, const amrex::iMultiFab** is_land)
 {
     const amrex::iMultiFab* lmask = nullptr;
     static_cast<ERF*>(erf_handle)->GetLandMask(lmask);
@@ -89,7 +89,7 @@ ERFGetLandMask(void* erf_handle, const amrex::iMultiFab** is_land)
 }
 
 void
-ERFGetFillableAtmosToOceanLanes(void* erf_handle,
+ERFGetFillableAtmosToOceanLanes (void* erf_handle,
                                 bool state_contract,
                                 amrex::Vector<int>& can_fill)
 {
@@ -103,7 +103,7 @@ ERFGetFillableAtmosToOceanLanes(void* erf_handle,
 }
 
 void
-ERFApplyOceanSurfaceState(void* erf_handle,
+ERFApplyOceanSurfaceState (void* erf_handle,
                           const amrex::Vector<amrex::MultiFab*>& state,
                           amrex::Real time,
                           const amrex::iMultiFab* erf_coverage)
@@ -112,7 +112,7 @@ ERFApplyOceanSurfaceState(void* erf_handle,
 }
 
 void
-ERFPackAtmosphericStates(void* erf_handle,
+ERFPackAtmosphericStates (void* erf_handle,
                          amrex::Vector<amrex::MultiFab*>& states,
                          amrex::Real time,
                          const amrex::MultiFab& weight_mf,
@@ -125,13 +125,13 @@ ERFPackAtmosphericStates(void* erf_handle,
 }
 
 amrex::Real
-ERFEvolveOneStep(void* erf_handle, amrex::Real time, amrex::Real dt_request)
+ERFEvolveOneStep (void* erf_handle, amrex::Real time, amrex::Real dt_request)
 {
     return static_cast<ERF*>(erf_handle)->EvolveOneStep(time, dt_request);
 }
 
 void
-ERFWriteAtFinalTime(void* erf_handle)
+ERFWriteAtFinalTime (void* erf_handle)
 {
     return static_cast<ERF*>(erf_handle)->WriteAtFinalTime();
 }

@@ -22,10 +22,10 @@ struct CheckpointHeaderMetadata
     amrex::Real time = amrex::Real(0.0);
 };
 
-CheckpointHeaderMetadata ReadCheckpointHeaderMetadata(const std::string& checkpoint_dir,
+CheckpointHeaderMetadata ReadCheckpointHeaderMetadata (const std::string& checkpoint_dir,
                                                       SolverKind solver);
 
-const char* SolverKindName(SolverKind solver) noexcept;
+const char* SolverKindName (SolverKind solver) noexcept;
 } // namespace erf_remora::restart
 
 #endif

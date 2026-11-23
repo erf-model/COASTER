@@ -67,7 +67,7 @@ struct REMORAStagingPlan;
 class CoasterMBContainer
 {
 public:
-    CoasterMBContainer(const amrex::RealBox& atm_rb,
+    CoasterMBContainer (const amrex::RealBox& atm_rb,
                                   const amrex::Vector<int>& n_cell_atm,
                                   const amrex::RealBox& ocn_rb,
                                   const amrex::Vector<int>& n_cell_ocn,
@@ -81,43 +81,43 @@ public:
                                   int ocean_steps_per_exchange,
                                   coupling::AtmosToOceanContract atm2ocn_contract,
                                   bool use_two_way_coupling);
-    ~CoasterMBContainer();
+    ~CoasterMBContainer ();
 
-    void InitializeBlocks();
-    void InitializeSolvers();
+    void InitializeBlocks ();
+    void InitializeSolvers ();
     // Ocean-frame (absolute) stop time for REMORA, or a negative value to leave
     // REMORA's stop_time alone. Must be set before InitializeSolvers().
-    void SetOceanFrameStopTime(amrex::Real ocean_frame_stop_time);
-    void PrefillAtmosToOceanFallbacks();
-    void SetAtmosphereTick(long long atm_tick);
-    void AdvanceBlocks(int ocean_steps);
-    amrex::Vector<amrex::MultiFab*>& AtmosToOceanActiveCache();
-    const amrex::Vector<std::string>& AtmosToOceanActiveNames() const;
+    void SetOceanFrameStopTime (amrex::Real ocean_frame_stop_time);
+    void PrefillAtmosToOceanFallbacks ();
+    void SetAtmosphereTick (long long atm_tick);
+    void AdvanceBlocks (int ocean_steps);
+    amrex::Vector<amrex::MultiFab*>& AtmosToOceanActiveCache ();
+    const amrex::Vector<std::string>& AtmosToOceanActiveNames () const;
 
     // True when remap weights are built in lon/lat degrees rather than the
     // shared projected frame. Resolved during BuildRemapWeights().
-    bool RemapIsSpherical() const { return m_remap_spherical; }
+    bool RemapIsSpherical () const { return m_remap_spherical; }
 
     // Topology getters
-    const amrex::RealBox& GetAtmRealBox() const { return m_atm_rb; }
-    const amrex::Vector<int>& GetAtmNCell() const { return m_atm_n_cell; }
-    const amrex::RealBox& GetOcnRealBox() const { return m_ocn_rb; }
-    const amrex::Vector<int>& GetOcnNCell() const { return m_ocn_n_cell; }
-    int GetMaxLevel() const { return m_max_level; }
-    int GetCoord() const { return m_coord; }
-    const amrex::Vector<amrex::IntVect>& GetRefRatio() const { return m_ref_ratio; }
-    const amrex::Array<int,AMREX_SPACEDIM>& GetIsPeriodic() const { return m_is_periodic; }
+    const amrex::RealBox& GetAtmRealBox () const { return m_atm_rb; }
+    const amrex::Vector<int>& GetAtmNCell () const { return m_atm_n_cell; }
+    const amrex::RealBox& GetOcnRealBox () const { return m_ocn_rb; }
+    const amrex::Vector<int>& GetOcnNCell () const { return m_ocn_n_cell; }
+    int GetMaxLevel () const { return m_max_level; }
+    int GetCoord () const { return m_coord; }
+    const amrex::Vector<amrex::IntVect>& GetRefRatio () const { return m_ref_ratio; }
+    const amrex::Array<int,AMREX_SPACEDIM>& GetIsPeriodic () const { return m_is_periodic; }
 
     // Accessors for remap weight and index MultiFabs
-    const amrex::MultiFab* GetA2OWeightMultiFab() const { return m_weight_a2o_mf.get(); }
-    const amrex::iMultiFab* GetA2OIndexMultiFab() const { return m_index_a2o_mf.get(); }
-    const amrex::MultiFab* GetO2AWeightMultiFab() const { return m_weight_o2a_mf.get(); }
-    const amrex::iMultiFab* GetO2AIndexMultiFab() const { return m_index_o2a_mf.get(); }
+    const amrex::MultiFab* GetA2OWeightMultiFab () const { return m_weight_a2o_mf.get(); }
+    const amrex::iMultiFab* GetA2OIndexMultiFab () const { return m_index_a2o_mf.get(); }
+    const amrex::MultiFab* GetO2AWeightMultiFab () const { return m_weight_o2a_mf.get(); }
+    const amrex::iMultiFab* GetO2AIndexMultiFab () const { return m_index_o2a_mf.get(); }
 
     // Public only because they launch device lambdas, which nvcc refuses inside
     // private or protected member functions. Not part of the driver's interface.
-    void BuildOceanToAtmosWeights();
-    void SetLandMaskFromDomainOverlap(const amrex::iMultiFab* erf_is_land);
+    void BuildOceanToAtmosWeights ();
+    void SetLandMaskFromDomainOverlap (const amrex::iMultiFab* erf_is_land);
 
 private:
     using MutableStateFn = std::function<void(amrex::Vector<amrex::MultiFab*>&,
@@ -125,49 +125,49 @@ private:
     using ConstStateFn = std::function<void(const amrex::Vector<amrex::MultiFab*>&,
                                             amrex::Real, long long)>;
 
-    void AdvanceBlocksWithCallbacks(const MutableStateFn& pack_surface_state,
+    void AdvanceBlocksWithCallbacks (const MutableStateFn& pack_surface_state,
                                     const ConstStateFn& apply_ocean_surface_state,
                                     const MutableStateFn& pack_atmos_states,
                                     const ConstStateFn& apply_atmos_states,
                                     int ocean_steps);
 
-    void AllocateCaches();
-    void AllocateCachesFromSolverLayouts();
-    bool AtmosToOceanAveragingActive() const;
-    bool TimeAverageAtmosToOceanLane(int global_idx) const;
-    void ResetAtmosToOceanAccumulators();
-    void AccumulateAtmosToOcean(amrex::Real weight, amrex::Real steps_since_last_sample);
-    void DrainAtmosToOceanAccumulators();
-    void FillOceanToAtmosGhosts();
+    void AllocateCaches ();
+    void AllocateCachesFromSolverLayouts ();
+    bool AtmosToOceanAveragingActive () const;
+    bool TimeAverageAtmosToOceanLane (int global_idx) const;
+    void ResetAtmosToOceanAccumulators ();
+    void AccumulateAtmosToOcean (amrex::Real weight, amrex::Real steps_since_last_sample);
+    void DrainAtmosToOceanAccumulators ();
+    void FillOceanToAtmosGhosts ();
     // Pack REMORA's surface state (SST, and the current when coupled) into state on
     // ERF's layout, zeroing ERF land
-    void PackOceanToAtmos(amrex::Vector<amrex::MultiFab*>& state, amrex::Real time);
-    void FillAtmosToOceanGhosts();
-    void PrintDiagnostics(const char* label,
+    void PackOceanToAtmos (amrex::Vector<amrex::MultiFab*>& state, amrex::Real time);
+    void FillAtmosToOceanGhosts ();
+    void PrintDiagnostics (const char* label,
                           const amrex::Vector<amrex::MultiFab*>& fields,
                           const amrex::Vector<std::string>& names,
                           bool ocean_to_atmos) const;
-    void ValidateFields(const char* label,
+    void ValidateFields (const char* label,
                         const amrex::Vector<amrex::MultiFab*>& fields,
                         const amrex::Vector<std::string>& names,
                         amrex::Real time,
                         long long ocean_step,
                         bool ocean_to_atmos) const;
     // Abort if any packed lane holds a NaN or an infinity in a valid cell.
-    void AbortOnNonFinite(const char* what,
+    void AbortOnNonFinite (const char* what,
                           const amrex::Vector<amrex::MultiFab*>& lanes,
                           const amrex::Vector<std::string>& names) const;
-    void CheckDebugInjectNaNLane() const;
-    void MaybeInjectDebugNaN(const amrex::Vector<amrex::MultiFab*>& lanes,
+    void CheckDebugInjectNaNLane () const;
+    void MaybeInjectDebugNaN (const amrex::Vector<amrex::MultiFab*>& lanes,
                              const amrex::Vector<std::string>& names,
                              bool after_guard) const;
     // The two exchange directions are sampled at different instants; each is
     // stamped with the time it actually represents.
-    void WriteExchangePlotfiles(amrex::Real o2a_time,
+    void WriteExchangePlotfiles (amrex::Real o2a_time,
                                 amrex::Real a2o_time,
                                 amrex::Real dt_ocn,
                                 long long ocean_step) const;
-    void WriteExchangePlotfile(const std::string& prefix,
+    void WriteExchangePlotfile (const std::string& prefix,
                                const amrex::Vector<amrex::MultiFab*>& fields,
                                const amrex::Vector<std::string>& names,
                                const amrex::Geometry& geom,
@@ -180,7 +180,7 @@ private:
     // not all represent the same instant. Rather than force one number to mean two
     // things, write the per-lane provenance beside the data, the way job_info carries
     // run provenance. Debug metadata only; nothing downstream parses it.
-    void WriteExchangeInfo(const std::string& plotfilename,
+    void WriteExchangeInfo (const std::string& plotfilename,
                            const amrex::Vector<amrex::MultiFab*>& fields,
                            const amrex::Vector<std::string>& names,
                            amrex::Real time,
@@ -188,21 +188,21 @@ private:
                            amrex::Real dt_ocn,
                            long long ocean_step,
                            bool ocean_to_atmos) const;
-    void ValidateCouplingLayoutsFromSolvers() const;
-    coupling::AtmosToOceanContract ActiveAtmosToOceanContract() const;
-    void SelectAtmosToOceanActiveView();
+    void ValidateCouplingLayoutsFromSolvers () const;
+    coupling::AtmosToOceanContract ActiveAtmosToOceanContract () const;
+    void SelectAtmosToOceanActiveView ();
 
     // Decide once who owns each atmos->ocean lane (see LaneSource in
     // CoasterCouplingContract.H) and reconfigure REMORA for the lanes ERF
     // takes over. Must run between ERF InitData, which allocates the radiation
     // fields the capability query reads, and REMORA InitData, which opens
     // NetCDF handles off the selectors this may change.
-    void ResolveAtmosToOceanLaneSources();
-    void PrintAtmosToOceanLaneProvenance() const;
+    void ResolveAtmosToOceanLaneSources ();
+    void PrintAtmosToOceanLaneProvenance () const;
 
     // Weight calculation and stencil safety helpers
-    void BuildRemapWeights();
-    void DumpRemapWeights() const;
+    void BuildRemapWeights ();
+    void DumpRemapWeights () const;
     // wet_mask is the land/sea mask on the destination layout (1 = wet), used
     // to report coverage over the cells that actually carry ocean. Pass nullptr
     // when unavailable; coverage is then reported over all cells only.
@@ -212,7 +212,7 @@ private:
     // A donor-filled cell has sum_w > 0 and would otherwise be indistinguishable
     // from a genuinely covered one, so it is reported as its own category. Pass
     // nullptr for a direction that has no donor search (O2A).
-    void NormalizeWeightsAndCheckConservation(amrex::MultiFab& weight_mf,
+    void NormalizeWeightsAndCheckConservation (amrex::MultiFab& weight_mf,
                                               const amrex::iMultiFab& index_mf,
                                               const amrex::MultiFab* wet_mask,
                                               const amrex::iMultiFab* donor_fill,
@@ -222,29 +222,29 @@ private:
     // Aborts rather than silently degrading when exactly one side reports
     // lon/lat, because clipping degrees against meters produces zero overlap
     // for every cell and therefore an all-zero, silently unforced coupling.
-    void ResolveRemapFrame();
+    void ResolveRemapFrame ();
 
     // Decide (and report) what an uncovered wet destination cell receives.
     // Called after ResolveRemapFrame() because the mode is inert in the
     // cartesian frame and the report says so. Aborts on an unrecognized
     // request, the same way ResolveRemapFrame() does.
-    void ResolveDonorFillMode();
+    void ResolveDonorFillMode ();
 
     // Spherical-frame ERF geometry, built on the ERF layout: a nodal lon/lat
     // corner mesh that tiles without gaps, plus the cell-centered land mask.
     // Split from the REMORA-side loop so no MFIter touches two
     // DistributionMappings.
-    void BuildERFCornerMesh();
+    void BuildERFCornerMesh ();
 
     // Geographic overlap -> per-REMORA-box ERF index regions -> cached
     // NonLocalBC comm plan -> staged copies on the REMORA layout.
-    void BuildERFStagingPlan();
+    void BuildERFStagingPlan ();
     // Geographic overlap -> per-ERF-box REMORA index regions -> cached
     // NonLocalBC comm plan -> staged copies on the ERF layout.
-    void BuildREMORAStagingPlan();
+    void BuildREMORAStagingPlan ();
 
-    void BuildAtmosToOceanWeights();
-    void CompareWeightsWithSCRIP();
+    void BuildAtmosToOceanWeights ();
+    void CompareWeightsWithSCRIP ();
 
     // Driver-owned topology
     amrex::RealBox m_atm_rb;

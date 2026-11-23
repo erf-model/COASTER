@@ -391,7 +391,7 @@ amrex::Real PolygonArea (const amrex::Vector<Point2D>& poly) {
 }
 
 // Ensure polygon vertices are ordered counter-clockwise (CCW)
-void EnsureCounterClockwise(amrex::Vector<Point2D>& poly) {
+void EnsureCounterClockwise (amrex::Vector<Point2D>& poly) {
     if (poly.size() < 3) return;
     if (SignedArea2(poly) < 0.0) {
         std::reverse(poly.begin(), poly.end());
@@ -399,13 +399,13 @@ void EnsureCounterClockwise(amrex::Vector<Point2D>& poly) {
 }
 
 // Check if point p is on the inside (left) of directed edge A -> B
-bool IsInsideEdge(const Point2D& p, const Point2D& A, const Point2D& B) {
+bool IsInsideEdge (const Point2D& p, const Point2D& A, const Point2D& B) {
     constexpr amrex::Real eps = 1.0e-12;
     return ((B.x - A.x) * (p.y - A.y) - (B.y - A.y) * (p.x - A.x)) >= -eps;
 }
 
 // Compute line segment intersection between p1-p2 and edge A-B
-Point2D EdgeIntersection(const Point2D& p1, const Point2D& p2, const Point2D& A, const Point2D& B) {
+Point2D EdgeIntersection (const Point2D& p1, const Point2D& p2, const Point2D& A, const Point2D& B) {
     amrex::Real A1 = p2.y - p1.y;
     amrex::Real B1 = p1.x - p2.x;
     amrex::Real C1 = A1 * p1.x + B1 * p1.y;
@@ -422,7 +422,7 @@ Point2D EdgeIntersection(const Point2D& p1, const Point2D& p2, const Point2D& A,
 }
 
 // Sutherland-Hodgman convex polygon clipping algorithm
-amrex::Vector<Point2D> ClipPolygon(amrex::Vector<Point2D> subjectPoly, amrex::Vector<Point2D> clipPoly) {
+amrex::Vector<Point2D> ClipPolygon (amrex::Vector<Point2D> subjectPoly, amrex::Vector<Point2D> clipPoly) {
     if (subjectPoly.empty() || clipPoly.empty()) return {};
 
     EnsureCounterClockwise(subjectPoly);
@@ -472,7 +472,7 @@ amrex::Real ClippedArea (amrex::Vector<Point2D> subjectPoly, amrex::Vector<Point
 }
 
 // Extract 4-corner physical quad for cell (i, j) from 2D coordinate MultiFabs
-amrex::Vector<Point2D> ExtractCellQuadFromCoords(int i, int j, const amrex::Array4<const amrex::Real>& x_arr,
+amrex::Vector<Point2D> ExtractCellQuadFromCoords (int i, int j, const amrex::Array4<const amrex::Real>& x_arr,
                                                  const amrex::Array4<const amrex::Real>& y_arr) {
     amrex::Vector<Point2D> quad = {
         { x_arr(i,   j,   0), y_arr(i,   j,   0) },
@@ -685,7 +685,7 @@ struct REMORAStagingPlan
     int empty_boxes = 0;
 };
 
-CoasterMBContainer::~CoasterMBContainer()
+CoasterMBContainer::~CoasterMBContainer ()
 {
     if (m_erf != nullptr) {
         DestroyERFSolver(m_erf);
@@ -885,7 +885,7 @@ CoasterMBContainer::InitializeSolvers ()
 }
 
 void
-CoasterMBContainer::SetLandMaskFromDomainOverlap(const amrex::iMultiFab* erf_is_land)
+CoasterMBContainer::SetLandMaskFromDomainOverlap (const amrex::iMultiFab* erf_is_land)
 {
     if (erf_is_land == nullptr) {
         if (m_driver_verbose > 0) {
@@ -1322,7 +1322,7 @@ CoasterMBContainer::ValidateCouplingLayoutsFromSolvers () const
 // weight set normalizes silently and would otherwise look like a clean run with
 // no forcing.
 void
-CoasterMBContainer::NormalizeWeightsAndCheckConservation(amrex::MultiFab& weight_mf,
+CoasterMBContainer::NormalizeWeightsAndCheckConservation (amrex::MultiFab& weight_mf,
                                                                    const amrex::iMultiFab& index_mf,
                                                                    const amrex::MultiFab* wet_mask,
                                                                    const amrex::iMultiFab* donor_fill,
@@ -1810,7 +1810,7 @@ ExtendCornerMeshOneRing (amrex::MultiFab& node_mf, const amrex::Box& node_domain
 }
 
 void
-CoasterMBContainer::BuildRemapWeights()
+CoasterMBContainer::BuildRemapWeights ()
 {
     ResolveRemapFrame();
     ResolveDonorFillMode();
@@ -2077,7 +2077,7 @@ CoasterMBContainer::CompareWeightsWithSCRIP ()
 // SCRIP makes the same either/or choice from the grid file's `spherical` switch
 // (COAWST Lib/SCRIP_COAWST/read_roms.f).
 void
-CoasterMBContainer::ResolveRemapFrame()
+CoasterMBContainer::ResolveRemapFrame ()
 {
     using namespace amrex;
 
@@ -2169,7 +2169,7 @@ CoasterMBContainer::ResolveRemapFrame()
 // is opt-in and says so loudly, and the shipped default is the one the
 // literature supports.
 void
-CoasterMBContainer::ResolveDonorFillMode()
+CoasterMBContainer::ResolveDonorFillMode ()
 {
     if (m_remap_donor_fill_request == "withhold") {
         m_remap_donor_fill_mode = DonorFillMode::Withhold;
@@ -2254,7 +2254,7 @@ CoasterMBContainer::ResolveDonorFillMode()
 // Not handled, as before: a grid whose cells straddle a longitude wrap. The
 // average would be wrong there, and so would the clipping downstream.
 void
-CoasterMBContainer::BuildERFCornerMesh()
+CoasterMBContainer::BuildERFCornerMesh ()
 {
     using namespace amrex;
 
@@ -2412,7 +2412,7 @@ CoasterMBContainer::BuildERFCornerMesh()
 // must be globally consistent, hence the reduction rather than a local
 // computation.
 void
-CoasterMBContainer::BuildERFStagingPlan()
+CoasterMBContainer::BuildERFStagingPlan ()
 {
     using namespace amrex;
 
@@ -2576,7 +2576,7 @@ CoasterMBContainer::BuildERFStagingPlan()
 // footprint needs, and amrex::NonLocalBC moves that region onto the ERF
 // DistributionMapping. Only the rho mask is staged.
 void
-CoasterMBContainer::BuildREMORAStagingPlan()
+CoasterMBContainer::BuildREMORAStagingPlan ()
 {
     using namespace amrex;
 
@@ -2744,7 +2744,7 @@ CoasterMBContainer::BuildREMORAStagingPlan()
 }
 
 void
-CoasterMBContainer::BuildAtmosToOceanWeights()
+CoasterMBContainer::BuildAtmosToOceanWeights ()
 {
     using namespace amrex;
 
@@ -3211,7 +3211,7 @@ CoasterMBContainer::BuildAtmosToOceanWeights()
 }
 
 void
-CoasterMBContainer::BuildOceanToAtmosWeights()
+CoasterMBContainer::BuildOceanToAtmosWeights ()
 {
     using namespace amrex;
 
