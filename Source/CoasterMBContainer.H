@@ -1,7 +1,7 @@
 #ifndef COASTER_MULTIBLOCK_CONTAINER_H_
 #define COASTER_MULTIBLOCK_CONTAINER_H_
 
-#include "ERFRemoraCouplingContract.H"
+#include "CoasterCouplingContract.H"
 
 #include <AMReX_BoxArray.H>
 #include <AMReX_DistributionMapping.H>
@@ -39,7 +39,7 @@ struct Point2D {
 //   fill with zero -- OASIS documents that as a deficiency. ESMF refuses to
 //   combine extrapolation with conservative regridding outright, because
 //   "doing so would result in non-conservative weights", which is exactly the
-//   objection to this mode: a full-weight nearest-neighbour row spliced into a
+//   objection to this mode: a full-weight nearest-neighbor row spliced into a
 //   fracarea-normalized conservative matrix is not conservative. Opt-in only.
 //
 // Both modes are inert in the cartesian frame, where the donor search never runs.
@@ -55,7 +55,7 @@ struct RemapStagingPlan;
 struct REMORAStagingPlan;
 
 /**
- * ERFRemoraMultiBlockContainer is the driver-owned "conductor" object.
+ * CoasterMBContainer is the driver-owned "conductor" object.
  *
  * Driver Responsibilities:
  * 1. Owns topology for both atmosphere (ERF) and ocean (REMORA).
@@ -64,10 +64,10 @@ struct REMORAStagingPlan;
  * 4. Owns the source-to-destination staging plan (GetRemapStagingPlan()) that the
  *    solver-side remap apply uses to route source data onto the destination layout.
  */
-class ERFRemoraMultiBlockContainer
+class CoasterMBContainer
 {
 public:
-    ERFRemoraMultiBlockContainer(const amrex::RealBox& atm_rb,
+    CoasterMBContainer(const amrex::RealBox& atm_rb,
                                   const amrex::Vector<int>& n_cell_atm,
                                   const amrex::RealBox& ocn_rb,
                                   const amrex::Vector<int>& n_cell_ocn,
@@ -82,7 +82,7 @@ public:
                                   int ocean_steps_per_exchange,
                                   coupling::AtmosToOceanContract atm2ocn_contract,
                                   bool use_two_way_coupling);
-    ~ERFRemoraMultiBlockContainer();
+    ~CoasterMBContainer();
 
     void InitializeBlocks();
     void InitializeSolvers();
@@ -194,7 +194,7 @@ private:
     void SelectAtmosToOceanActiveView();
 
     // Decide once who owns each atmos->ocean lane (see LaneSource in
-    // ERFRemoraCouplingContract.H) and reconfigure REMORA for the lanes ERF
+    // CoasterCouplingContract.H) and reconfigure REMORA for the lanes ERF
     // takes over. Must run between ERF InitData, which allocates the radiation
     // fields the capability query reads, and REMORA InitData, which opens
     // NetCDF handles off the selectors this may change.
@@ -318,7 +318,7 @@ private:
     // True if atmosphere domain extends beyond ocean domain in any direction (x/y).
     // Computed once in AllocateCachesFromSolverLayouts() after geometries are available.
     bool m_atm_extends_beyond_ocn = false;
-    // Target ERF cells per search bin (SCRIP restrict_type=latlon analogue).
+    // Target ERF cells per search bin (SCRIP restrict_type=latlon analog).
     int m_remap_bin_cells = 4;
     // Least ocean area fraction that counts as covering an ERF cell on the
     // ocean->atmos direction. Below this the cell is reported uncovered and ERF
@@ -342,7 +342,7 @@ private:
     // distance-bounded at all (when no local candidate exists it queries its
     // process directory with an infinite box, so it always finds the globally
     // nearest source however far away), and creep fill bounds by iteration
-    // count rather than by distance. 3.0 is a judgement call carried over from
+    // count rather than by distance. 3.0 is a judgment call carried over from
     // issue #6 and has not been calibrated against a production grid pair.
     // Inert unless the mode is coawst and the frame is spherical.
     amrex::Real m_remap_donor_max_diagonals = amrex::Real(3.0);
@@ -409,7 +409,7 @@ private:
     static constexpr int MAX_STENCIL_SIZE = 9;
 
     // Atmosphere -> Ocean (A2O) stencils (live on the REMORA rho layout). Every
-    // A2O lane, vectors included, crosses as a cell-centred field, so one set
+    // A2O lane, vectors included, crosses as a cell-centered field, so one set
     // of cell -> rho weights serves them all.
     std::unique_ptr<amrex::MultiFab> m_weight_a2o_mf;
     std::unique_ptr<amrex::iMultiFab> m_index_a2o_mf;

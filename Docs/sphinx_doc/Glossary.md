@@ -18,7 +18,7 @@ should use the preferred term.
 **Lane** *(preferred; also seen as* layer*)*
 : One exchanged variable's slot in an exchange cache — `Uwind`, `SST`,
   `SHflux` and so on. Lanes are addressed by the index enums in
-  `Source/ERFRemoraCouplingContract.H`. A lane is *active* when the running
+  `Source/CoasterCouplingContract.H`. A lane is *active* when the running
   contract selects it, and allocated-but-inactive otherwise.
 
 **Cache**
@@ -67,7 +67,7 @@ should use the preferred term.
 **Donor fill**
 : Grafting a stencil for an otherwise-uncovered cell, pointing at a nearby
   source cell. Selected by `driver.remap_donor_fill`; `coawst` mode reproduces
-  COAWST's `check_weights` behaviour. Donor-filled cells are counted separately
+  COAWST's `check_weights` behavior. Donor-filled cells are counted separately
   from genuinely covered ones.
 
 **`fracarea` / `dstarea`**

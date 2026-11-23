@@ -7,7 +7,7 @@
 namespace erf_remora
 {
 void*
-CreateREMORASolver(const ERFRemoraMultiBlockContainer& container)
+CreateREMORASolver(const CoasterMBContainer& container)
 {
     return static_cast<void*>(new REMORA(
         container.GetOcnRealBox(),

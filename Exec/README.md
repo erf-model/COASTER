@@ -524,7 +524,7 @@ the whole file on one rank, so leave it off for production runs.
 
 Reported once, as `A2O rho`. Every atmosphere-to-ocean lane, the vectors
 included, is remapped with the same cell-to-rho weights: Uwind/Vwind and
-TauX/TauY cross as eastward/northward components at cell centres, ERF turns them
+TauX/TauY cross as eastward/northward components at cell centers, ERF turns them
 from its grid axes using its lat/lon, and REMORA turns them to its own with its
 grid `angle` (and averages the stresses to its u/v faces). The driver rotates
 nothing.
@@ -605,7 +605,7 @@ cartesian frame — and under `remap_v = 1` the driver says which mode resolved:
 **`withhold`, the default.** No stencil is written. The cell is counted uncovered,
 the warning above fires, and `ApplyConservativeRemap` assigns the per-lane
 fallback in the table above. Nothing is stubbed out: withholding *is* the
-behaviour, and it is what the production couplers do with an unmapped point. ESMF
+behavior, and it is what the production couplers do with an unmapped point. ESMF
 defaults `unmappedaction = ERROR`; CMEPS pre-fills and maps with
 `zeroregion = REGION_SELECT`; YAC does not interpolate unmapped points
 (`partial_coverage` defaults false); CDO pre-fills with a missing value; CESM
@@ -618,7 +618,7 @@ Selecting it prints two lines unconditionally, not gated on `remap_v`:
 
 ```
 [driver] WARNING remap: driver.remap_donor_fill=coawst grafts a full-weight
-nearest-neighbour stencil into the fracarea-normalized conservative matrix ...
+nearest-neighbor stencil into the fracarea-normalized conservative matrix ...
 The resulting atmosphere->ocean operator is NOT conservative.
 ```
 
@@ -639,7 +639,7 @@ frame; the donor search only runs when the frame is spherical.
 The non-conservation claim is not a hedge. ESMF refuses to combine extrapolation
 with conservative regridding at all, because "doing so would result in
 non-conservative weights" — and that is precisely what this graft is: a
-full-weight nearest-neighbour row spliced into a `fracarea`-normalized
+full-weight nearest-neighbor row spliced into a `fracarea`-normalized
 conservative matrix. Bounding the donor, as below, makes *which* cell is grafted
 more reproducible. It does not make the graft conservative, and no bound will.
 
@@ -694,7 +694,7 @@ Three restrictions apply, in this order. Only the first two are principled.
    `NEAREST_STOD` is explicitly unbounded — when no local candidate exists it
    queries its process directory with an infinite box, so it always finds the
    globally nearest source however far away — and creep fill bounds by iteration
-   count rather than by distance. `3.0` is a judgement call and has not been
+   count rather than by distance. `3.0` is a judgment call and has not been
    calibrated against any production grid pair. If the number matters to your
    configuration, sweep it and watch `donor_filled` and the uncovered counts move;
    a plateau means it is not critical, a steep curve means it is.
@@ -712,7 +712,7 @@ index sentinel and takes the same per-lane fallback it would under `withhold`.
 
 Ties in the donor search are broken by smallest global source ID, which is what
 ESMF and YAC do, rather than by scan order. Exact ties are common rather than
-exotic on a structured grid — a destination cell centred between two source cells
+exotic on a structured grid — a destination cell centered between two source cells
 gives bitwise-equal distances — and scan order starts at the staged region's
 corner, which moves with the decomposition.
 
@@ -722,12 +722,12 @@ These do not stop the run and nothing downstream reports them:
 
 ```
 [driver] remap: <N> wet destination cells had no valid source overlap and were
-filled from their nearest non-land source cell (COAWST check_weights behaviour).
+filled from their nearest non-land source cell (COAWST check_weights behavior).
 ```
 
 Only under `driver.remap_donor_fill = coawst`; the default never prints it. It
 matches COAWST (Warner et al. 2010), the coupled system this driver's remap was
-ported from, and those cells carry a neighbour's atmospheric state rather than
+ported from, and those cells carry a neighbor's atmospheric state rather than
 their own.
 
 `<N>` counts the same cells as the `donor_filled=` field on the `A2O rho`

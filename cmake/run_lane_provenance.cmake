@@ -108,7 +108,7 @@ else()
 endif()
 
 # This file's own statement of the contract, deliberately not read from the
-# driver. Source of truth is Source/ERFRemoraCouplingContract.H:
+# driver. Source of truth is Source/CoasterCouplingContract.H:
 # AtmosToOceanNames(contract) for the vocabularies, and the flux-character index
 # set in WriteExchangeInfo for the characters.
 set(_vocab_flux  tau_x tau_y SHflux LHflux SWrad LWrad rain evap)

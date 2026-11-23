@@ -1,7 +1,7 @@
 #ifndef ERF_REMORA_STANDALONE_SOLVER_RUNS_H_
 #define ERF_REMORA_STANDALONE_SOLVER_RUNS_H_
 
-#include "ERFRemoraMultiBlockContainer.H"
+#include "CoasterMBContainer.H"
 
 #include <AMReX_MultiFab.H>
 #include <AMReX_iMultiFab.H>
@@ -21,7 +21,7 @@ ERF_DMap(void* erf_handle) noexcept;
 
 // Persistent coupled-mode shims. Opaque handles keep ERF.H and REMORA.H out of
 // driver container translation units.
-void* CreateERFSolver(const ERFRemoraMultiBlockContainer& container);
+void* CreateERFSolver(const CoasterMBContainer& container);
 void DestroyERFSolver(void* erf_handle) noexcept;
 void ConfigureERFDriverAtmosToOceanCoupling(void* erf_handle,
                                             bool use_coupling_driver,
@@ -58,7 +58,7 @@ void ERFApplyOceanSurfaceState(void* erf_handle,
                                const amrex::iMultiFab* erf_coverage = nullptr);
 // weight_mf/index_mf are the cell -> rho remap set, shared by every lane.
 // Vectors (Uwind/Vwind, TauX/TauY) are packed as eastward/northward
-// components at ERF cell centres; dst_mskr is REMORA's rho wet/dry mask.
+// components at ERF cell centers; dst_mskr is REMORA's rho wet/dry mask.
 void ERFPackAtmosphericStates(void* erf_handle,
                               amrex::Vector<amrex::MultiFab*>& states,
                               amrex::Real time,
@@ -69,7 +69,7 @@ void ERFPackAtmosphericStates(void* erf_handle,
 amrex::Real ERFEvolveOneStep(void* erf_handle, amrex::Real time, amrex::Real dt_request);
 void ERFWriteAtFinalTime(void* erf_handle);
 
-void* CreateREMORASolver(const ERFRemoraMultiBlockContainer& container);
+void* CreateREMORASolver(const CoasterMBContainer& container);
 void DestroyREMORASolver(void* remora_handle) noexcept;
 void ConfigureREMORADriverAtmosToOceanCoupling(void* remora_handle,
                                                bool use_coupling_driver,

@@ -179,7 +179,7 @@ add_executable(
   coaster
   Source/main.cpp
   Source/CoupledRestartUtils.cpp
-  Source/ERFRemoraMultiBlockContainer.cpp
+  Source/CoasterMBContainer.cpp
   Source/RunERFStandalone.cpp
   Source/RunREMORAStandalone.cpp
 )
