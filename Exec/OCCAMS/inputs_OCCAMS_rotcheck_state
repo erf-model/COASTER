@@ -4,7 +4,7 @@
 # driver's exchange plotfiles, ERF's grid-axis and earth-relative 10 m winds every exchange,
 # and REMORA's NetCDF history (winds, stress, angle) every ocean step.
 #
-# Run it like inputs_OCCAMS_state (see Exec/README.md), then, in the run directory:
+# Run it like inputs_OCCAMS_state (see Docs/sphinx_doc/ExampleProblems.rst), then, in the run directory:
 #
 #   python3 check_rotation.py --run . \
 #       --wrfinput /pscratch/sd/k/kehinson/oracle/OCCAMS_for_Seahorce/base_drag_202108/wrfinput_d01

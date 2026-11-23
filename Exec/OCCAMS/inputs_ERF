@@ -26,7 +26,7 @@ erf.real_extrap_w       = true
 erf.rebalance_wrf_input = true
 # Keep WRF's level heights instead of rebuilding a 20 m-stretched grid, which is 3x
 # finer aloft and lets desert thermals hit the vertical CFL limit by t=640 s.
-# Rationale in translation_map.tsv (e_vert) and Exec/README.md.
+# Rationale in translation_map.tsv (e_vert) and Docs/sphinx_doc/ExampleProblems.rst.
 erf.avg_grid_faces_to_nodes = true
 erf.nc_init_file_0      = "/pscratch/sd/k/kehinson/oracle/OCCAMS_for_Seahorce/base_drag_202108/wrfinput_d01"
 erf.nc_bdy_file         = "/pscratch/sd/k/kehinson/oracle/OCCAMS_for_Seahorce/base_drag_202108/wrfbdy_d01"
@@ -44,7 +44,7 @@ erf.moisture_model    = "Kessler"
 erf.pbl_type          = "YSUNew"
 # Implicit vertical diffusion in all three RK stages, as WRF's YSU is. The default
 # 1 1 0 leaves the third stage explicit, which blows up over the steepest terrain.
-# Rationale in translation_map.tsv (bl_pbl_physics) and Exec/README.md.
+# Rationale in translation_map.tsv (bl_pbl_physics) and Docs/sphinx_doc/ExampleProblems.rst.
 erf.vert_implicit_fac = 1 1 1
 erf.molec_diff_type   = "None"
 erf.les_type          = "None"

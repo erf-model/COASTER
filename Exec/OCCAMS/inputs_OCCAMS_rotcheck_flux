@@ -5,7 +5,7 @@
 # earth-relative 10 m winds every exchange, and REMORA's NetCDF history (stress, angle,
 # currents) every ocean step.
 #
-# Run it like inputs_OCCAMS_flux (see Exec/README.md), then, in the run directory:
+# Run it like inputs_OCCAMS_flux (see Docs/sphinx_doc/ExampleProblems.rst), then, in the run directory:
 #
 #   python3 check_rotation.py --run . --rho0 1025 \
 #       --wrfinput /pscratch/sd/k/kehinson/oracle/OCCAMS_for_Seahorce/base_drag_202108/wrfinput_d01

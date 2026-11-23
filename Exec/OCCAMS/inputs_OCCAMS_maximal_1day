@@ -4,7 +4,7 @@
 # ones whose value equals the C++ default, so the run is reproducible from this file
 # plus the two base decks. Tier row numbers are cited in brackets. Rationale lives in
 # translation_map.tsv (columns transform_or_assumption, mismatch_tier, run_evidence)
-# and Exec/README.md, not here.
+# and Docs/sphinx_doc/ExampleProblems.rst, not here.
 #
 # Prerequisites (data only):
 #   pnetcdf_compat/OCCAMS_clm_v7_merc_202108_64bit.nc   CDF-5 copy of the climatology
@@ -62,7 +62,7 @@ erf.rrtmgp_cloud_optics_lw = rrtmgp-cloud-optics-coeffs-lw.nc
 erf.moisture_model = "Morrison"
 
 # Land surface: WRF Noah-MP (sf_surface_physics = 4), 4 soil layers by default.   [53]
-# Needs a build with -DERF_ENABLE_NOAHMP=ON (build_cpu_noahmp in INSTALL.md). Run from
+# Needs a build with -DERF_ENABLE_NOAHMP=ON (build_cpu_noahmp in Docs/sphinx_doc/Building.rst). Run from
 # Exec/OCCAMS: Noah-MP reads namelist.erf and NoahmpTable.TBL from the run directory.
 erf.land_surface_model = "NOAHMP"
 
