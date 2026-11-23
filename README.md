@@ -35,3 +35,14 @@ ERF and REMORA have their own documentation:
 
 - ERF: <https://erf.readthedocs.io/en/latest/>
 - REMORA: <https://remora-ocean.readthedocs.io/en/latest/>
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to contribute to COASTER
+development. All participants are expected to follow the
+[Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Citation
+
+See [CITATION.md](CITATION.md) for the ERF and REMORA papers to cite when
+using COASTER.
