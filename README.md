@@ -1,141 +1,36 @@
 # COASTER
 
-This repository builds a coupled driver that advances ERF (atmosphere) and
-REMORA (ocean) in one executable. The driver owns the coupling clock, the
-interface caches, and the pack/apply calls used to exchange state between the
-two solvers.
+COASTER couples the atmosphere model [ERF](https://github.com/erf-model/ERF)
+and the ocean model [REMORA](https://github.com/remora-ocean/REMORA) in a
+single executable. A driver owns the coupling clock, remaps the exchanged
+fields between the two grids, and moves surface state and fluxes between the
+solvers. ERF and REMORA never call each other directly.
 
-For build and run instructions see [INSTALL.md](INSTALL.md).
+## Quick start
 
-## Architectural Rule
+```bash
+git clone --recursive git@github.com:erf-model/COASTER
+cd COASTER
+cmake -S . -B build
+cmake --build build -j 8 --target coaster
+cd Exec/Upwelling
+../../build/coaster inputs_oneway max_step=10
+```
 
-ERF and REMORA do not call each other directly. The driver owns:
+## Documentation
 
-- the coupling clock,
-- the interface caches (`Vector<MultiFab*>`),
-- and the orchestration of pack/apply callbacks.
+The user documentation is in `Docs/sphinx_doc`: building, inputs, the example
+problems, how to read the driver's output, the coupling contract, time
+coupling, remapping, and testing. Build it with:
 
-This mirrors the conductor pattern used in AMReX multiblock coupling work and
-keeps solver-core changes minimal.
+```bash
+pip install -r Docs/sphinx_doc/requirements.txt
+make -C Docs/sphinx_doc html
+```
 
-## Coupling Contract
+and open `Docs/sphinx_doc/_build/html/index.html`.
 
-### Validated mode
+ERF and REMORA have their own documentation:
 
-`driver.atm2ocn_mode = state` is the only validated coupling path. In this
-mode REMORA consumes atmospheric state variables and computes surface fluxes
-internally via its bulk-physics path.
-
-### Forcing lane ownership
-
-Each atmosphere-to-ocean lane has one source, resolved at startup and printed as
-a provenance table. ERF supplies a lane by default; a lane the REMORA deck
-configures explicitly, or one ERF cannot fill, is left to REMORA. Override with
-`driver.atm2ocn_lane_source.<lane> = erf | remora | auto`; see `Exec/README.md`.
-
-### Known limitations
-
-- `driver.atm2ocn_mode = flux` has a validated startup bootstrap (see
-  `INSTALL.md`), but is less exercised than the state path.
-- REMORA does not currently support vertical refinement in the z-direction in
-  coupled mode; the z refinement ratio must be 1.
-- Spatial remapping between non-matching horizontal grids is not yet
-  implemented; the current baseline uses level-0, matched horizontal grids.
-
-### Exchanged fields (COAWST state-passing baseline)
-
-Atmosphere → ocean:
-`Uwind`, `Vwind`, `Patm`, `Qair`, `Tair`, `cloud`, `rain`, `SWrad`, `LWrad`
-
-Ocean → atmosphere:
-`SST`, and with `driver.couple_currents = true` the surface current `Uoce`/`Voce`
-
-With `driver.couple_currents` (two-way only) the ocean sends its top-level current
-east and north, with the SST's weights and coverage, and ERF takes its surface stress
-from the wind relative to it, as COAWST's WRF does with ROMS's `UOCE`/`VOCE`. The
-driver sets ERF's `erf.use_coupled_currents` itself; setting that alone is an error.
-REMORA's own relative wind (`remora.bulk_flux_relative_wind`) is the state-mode
-counterpart on the ocean side.
-
-The atmosphere -> ocean cache is allocated as a superset layer vector that also
-reserves direct-flux layers (`tau_x`, `tau_y`, `SHflux`, `LHflux`, `evap`)
-for a future flux-passing mode without changing the driver-owned allocation
-model.
-
-Every lane crosses at cell centers (REMORA rho points). Vectors (`Uwind`/`Vwind`,
-`tau_x`/`tau_y`) cross as eastward/northward components: ERF turns them from its
-grid axes using its lat/lon, REMORA turns them to its own with its grid `angle`,
-and the driver remaps every lane with the same weights and rotates nothing.
-
-## Test Problems
-
-### Upwelling
-
-`Exec/Upwelling` contains the coastal upwelling problem of Perlin et al. (2007),
-<https://doi.org/10.1175/JPO3104.1>, used for validation as well as for MPI
-rank, OpenMP, and restart verification. It needs no external data:
-
-- `inputs_oneway` — `ERFtoREMORA`
-- `inputs_twoway` — `two_way`, with REMORA SST feeding ERF's surface layer
-
-### OCCAMS
-
-`Exec/OCCAMS` contains the real coupled domain. These decks reference absolute
-NERSC paths for their WRF and REMORA input files and are not runnable elsewhere
-without editing them:
-
-- `inputs_OCCAMS_smoke` — fast startup and exchange guard
-- `inputs_OCCAMS_oneway` — `ERFtoREMORA`
-- `inputs_OCCAMS_state` — `two_way`, state-passing contract
-- `inputs_OCCAMS_flux` — `two_way`, flux-passing contract
-
-`Exec/OCCAMS/run_occams.sh` runs them and summarizes the coupling diagnostics.
-
-See `Exec/README.md` for what each deck covers and how to read driver output,
-and `INSTALL.md` for build and verification workflows.
-
-## Coupling Roadmap
-
-### Current implementation
-
-The current interface contract follows the legacy COAWST state exchange
-(Warner et al. 2010, Fig. 5 Block B semantics). Validated behavior includes
-driver-owned coupled stepping, state-passing exchange at each coupled step,
-and 1:1 cadence smoke tests with `driver.dt_atm = 1` and
-`remora.fixed_dt = 1`.
-
-### Planned extensions
-
-- Runtime toggle between state-passing and direct flux-passing modes.
-- Wave-mediated coupling terms (Stokes-drift, wave-roughness-aware fluxes).
-- Conservative area-weighted spatial remapping for non-matching grids.
-
-Primary references: 
-- Warner et al. (2010), COAWST baseline and stated need for consistent flux coupling.
-- Zambon et al. (2014), COAWST hurricane application with direct stress/heat exchange.
-- COAWST implementation anchors:
-  - `Master/mct_roms_wrf.h` (`ATM2OCN_FLUXES` and `BULK_FLUXES` pathways)
-  - `ROMS/Nonlinear/atm2ocn_flux.F` (direct imported flux path)
-  - `ROMS/Nonlinear/bulk_flux.F` (state-driven bulk flux path)
-- Lattanzi et al. (ERF model papers, 2024/2025).
-- Klion et al. (REMORA model paper, 2025).
-
-## Integration Mitigations
-
-When ERF and REMORA are linked into one executable, two hazard classes arise:
-
-1. **Header/translation-unit collisions** — globally named symbols present in
-   both solver public headers (utility functions, structs, enums with identical
-   names).
-2. **Link-time symbol collisions** — duplicate global definitions.
-
-Current mitigations:
-
-- ERF-only and REMORA-only includes are kept in separate translation units.
-- Cross-solver exchange is confined to a driver-owned API boundary
-  (`Pack*`/`Apply*`).
-- Duplicate global symbols are made file-local (`static`) in solver repos
-  where needed.
-- `amrex_probinit` entry points are explicitly prefixed:
-  `erf_probinit` / `remora_probinit`.
-- Problem and solver-choice types are handled appropriately
+- ERF: <https://erf.readthedocs.io/en/latest/>
+- REMORA: <https://remora-ocean.readthedocs.io/en/latest/>

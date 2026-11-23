@@ -3,7 +3,7 @@
 # Run the OCCAMS coupled cases and summarize the driver's coupling diagnostics.
 #
 # Build and environment setup are deliberately NOT here -- they are machine- and
-# user-specific. See the Perlmutter recipe in INSTALL.md. This script assumes an
+# user-specific. See the Perlmutter recipe in Docs/sphinx_doc/Building.rst. This script assumes an
 # already-built driver and an allocation you can srun into:
 #
 #   salloc -N 1 --constraint cpu -A m4304 -t 01:00:00 --qos interactive
@@ -76,7 +76,7 @@ if [[ ${#CASES[@]} -eq 0 ]]; then
 fi
 
 # Pull out the lines that say whether the coupling did what it should. These are
-# documented in Exec/README.md under "Reading driver output".
+# documented in Docs/sphinx_doc/Output.rst.
 summarize () {
     local log="$1"
     echo

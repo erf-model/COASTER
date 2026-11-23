@@ -14,4 +14,4 @@ A guide to the COASTER source for readers who want to follow or modify it.
    * Pack and apply callbacks
    * Which ERF and REMORA interfaces COASTER calls
 
-.. Content to migrate here: Source/*.H header comments
+.. Content to write from: Source/*.H header comments

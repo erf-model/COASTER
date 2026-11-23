@@ -6,7 +6,7 @@
 # exchange the weights are 2 on f1 and 0 on f2, so the interval mean is f1
 # exactly. A lane that is not averaged keeps the interval-end sample, f2.
 # rain is left out: it is weighted per ERF step rather than by the trapezoid
-# (see "The rain lane" in Exec/README.md), so the reconstruction does not
+# (see "The rain lane" in Docs/sphinx_doc/theory/CouplingContract.rst), so the reconstruction does not
 # apply to it.
 #
 # Both references come from non-averaged runs: one substep per exchange writes

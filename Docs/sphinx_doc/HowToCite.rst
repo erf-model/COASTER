@@ -3,13 +3,31 @@
 How to Cite COASTER
 ===================
 
-How to cite COASTER, ERF, REMORA and AMReX in published work.
+COASTER does not yet have a publication of its own. If you use it, please cite
+the models and framework it is built on.
 
-.. note::
+ERF
+---
 
-   This page is being written. It will cover:
+Lattanzi et al. (2025). ERF: Energy Research and Forecasting Model. *Journal
+of Advances in Modeling Earth Systems*, 17(11).
+https://doi.org/10.1029/2024MS004884
 
-   * Citation for COASTER
-   * Citations for ERF, REMORA and AMReX
+Almgren et al. (2023). ERF: Energy Research and Forecasting. *Journal of Open
+Source Software*, 8(87), 5202. https://doi.org/10.21105/joss.05202
 
-.. Content to migrate here: README.md; ERF and REMORA HowToCite pages
+See the `ERF documentation
+<https://erf.readthedocs.io/en/latest/HowToCite.html>`_ for BibTeX entries.
+
+REMORA
+------
+
+Klion et al. (2025), the REMORA model paper. See the `REMORA repository
+<https://github.com/remora-ocean/REMORA>`_ for the current citation.
+
+AMReX
+-----
+
+Zhang et al. (2019). AMReX: a framework for block-structured adaptive mesh
+refinement. *Journal of Open Source Software*, 4(37), 1370.
+https://doi.org/10.21105/joss.01370

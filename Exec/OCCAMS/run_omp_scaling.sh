@@ -14,7 +14,7 @@
 # 16 x 16. Each rank gets 2*threads logical CPUs (one core per thread, with both
 # hyperthreads of that core), the layout NERSC recommends for CPU nodes.
 #
-# Needs a driver built with -DERF_REMORA_ENABLE_OPENMP=ON (INSTALL.md, MPI + OpenMP
+# Needs a driver built with -DERF_REMORA_ENABLE_OPENMP=ON (Docs/sphinx_doc/Building.rst, MPI + OpenMP
 # build). A build without it ignores OMP_NUM_THREADS, so every run just measures
 # fewer ranks. The script checks the log for AMReX's OpenMP banner and flags a run
 # that lacks it.

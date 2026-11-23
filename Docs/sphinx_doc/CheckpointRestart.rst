@@ -13,4 +13,4 @@ How a coupled run is checkpointed and restarted so that a restarted run reproduc
    * Restarting a coupled run
    * Restart validation
 
-.. Content to migrate here: Source/CoupledRestartUtils.H; INSTALL.md (Restart validation)
+.. Content to write from: Source/CoupledRestartUtils.H; Verification.rst (Restart)
