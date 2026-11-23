@@ -206,7 +206,7 @@ endif()
 # more ERF column, so it must report the same number of covered cells.
 #
 # This geometry does not exercise driver.remap_min_coverage_frac. The driver marks
-# ERF cells whose centres lie outside the ocean domain as land, so an edge column
+# ERF cells whose centers lie outside the ocean domain as land, so an edge column
 # overlapped by less than half is land whatever the threshold. The threshold acts
 # only on ERF water cells with a small wet overlap, which takes a REMORA land mask
 # across an ERF water cell; this deck has none.

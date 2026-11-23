@@ -67,7 +67,7 @@ should use the preferred term.
 **Donor fill**
 : Grafting a stencil for an otherwise-uncovered cell, pointing at a nearby
   source cell. Selected by `driver.remap_donor_fill`; `coawst` mode reproduces
-  COAWST's `check_weights` behaviour. Donor-filled cells are counted separately
+  COAWST's `check_weights` behavior. Donor-filled cells are counted separately
   from genuinely covered ones.
 
 **`fracarea` / `dstarea`**

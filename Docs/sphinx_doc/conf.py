@@ -69,7 +69,7 @@ intersphinx_disabled_reftypes = ['*']
 # -- Link checking -----------------------------------------------------------
 
 # myroms.org rejects linkcheck's requests; REMORA ignores it for the same
-# reason. The driver docs cite ROMS when comparing remap behaviour to
+# reason. The driver docs cite ROMS when comparing remap behavior to
 # precedent, so the entry is needed here too.
 linkcheck_ignore = [
     r'https://www\.myroms\.org/.*',

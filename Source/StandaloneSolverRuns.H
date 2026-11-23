@@ -58,7 +58,7 @@ void ERFApplyOceanSurfaceState(void* erf_handle,
                                const amrex::iMultiFab* erf_coverage = nullptr);
 // weight_mf/index_mf are the cell -> rho remap set, shared by every lane.
 // Vectors (Uwind/Vwind, TauX/TauY) are packed as eastward/northward
-// components at ERF cell centres; dst_mskr is REMORA's rho wet/dry mask.
+// components at ERF cell centers; dst_mskr is REMORA's rho wet/dry mask.
 void ERFPackAtmosphericStates(void* erf_handle,
                               amrex::Vector<amrex::MultiFab*>& states,
                               amrex::Real time,

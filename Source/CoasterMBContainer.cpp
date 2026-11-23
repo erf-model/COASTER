@@ -460,7 +460,7 @@ amrex::Vector<Point2D> ClipPolygon(amrex::Vector<Point2D> subjectPoly, amrex::Ve
 // Area of subjectPoly clipped by clipPoly. Both polygons are first shifted so
 // subjectPoly's first vertex is the origin; otherwise EdgeIntersection's
 // line constants are built from absolute coordinates and the clipped vertices
-// lose the same ~7 digits as an absolute shoelace sum (issue #34). Neighbouring
+// lose the same ~7 digits as an absolute shoelace sum (issue #34). Neighboring
 // coordinates are within a factor of two of each other, so the shift itself is
 // exact (Sterbenz) away from lon/lat = 0.
 amrex::Real ClippedArea (amrex::Vector<Point2D> subjectPoly, amrex::Vector<Point2D> clipPoly) {
@@ -1345,7 +1345,7 @@ CoasterMBContainer::NormalizeWeightsAndCheckConservation(amrex::MultiFab& weight
     // Cells whose stencil is a donor graft rather than a real overlap. These have
     // sum_w > 0, so every count above already treats them as covered; without a
     // separate tally the verdict below would report a clean sheet for a run in
-    // which some cells took a neighbour's atmospheric state instead of their own.
+    // which some cells took a neighbor's atmospheric state instead of their own.
     // The donor search only fires for cells that are wet under this same mask, so
     // this is a wet-cell count whenever it is nonzero.
     amrex::Long n_donor_filled = 0;
@@ -1502,7 +1502,7 @@ CoasterMBContainer::NormalizeWeightsAndCheckConservation(amrex::MultiFab& weight
         // for: no source cell of its own overlaps it. Without this line a run in
         // which every uncovered cell was donor-filled prints the clean-sheet
         // verdict below, and a reader cannot tell a genuinely covered cell from
-        // one holding a neighbour's value.
+        // one holding a neighbor's value.
         if (n_donor_filled > 0) {
             const IntVect ex = donor_example.example(stagger_domain);
             amrex::Print() << "[driver] WARNING remap (" << label << "): " << n_donor_filled
@@ -1511,7 +1511,7 @@ CoasterMBContainer::NormalizeWeightsAndCheckConservation(amrex::MultiFab& weight
                            << ") have no ERF source cell of "
                            << "their own and were donor-filled from the nearest non-land ERF "
                            << "cell (driver.remap_donor_fill=coawst). Each carries a "
-                           << "neighbour's atmospheric state, not its own, and the full-weight "
+                           << "neighbor's atmospheric state, not its own, and the full-weight "
                            << "graft makes this atmosphere->ocean operator non-conservative. "
                            << "They are excluded from the min wet frac below and are NOT part "
                            << "of the uncovered counts. Under the default "
@@ -2136,7 +2136,7 @@ CoasterMBContainer::ResolveRemapFrame()
                    << " (requested " << m_remap_frame_request << ")\n";
     if (m_remap_verbose >= 1) {
         if (m_remap_spherical) {
-            // ERF reports cell centres; its corner mesh, built from them, reaches
+            // ERF reports cell centers; its corner mesh, built from them, reaches
             // half a cell further on each side.
             amrex::Print() << "[driver] remap lon/lat ranges: "
                            << describe("remora corners(lon,lat)", remora_lon, remora_lat) << " "
@@ -2164,8 +2164,8 @@ CoasterMBContainer::ResolveRemapFrame()
 // documents that as a deficiency, not a feature. ESMF goes further and refuses
 // to combine extrapolation with conservative regridding at all, because "doing
 // so would result in non-conservative weights". That objection applies exactly
-// here: the donor fill grafts a full-weight nearest-neighbour row into a
-// fracarea-normalized conservative matrix. So COAWST's check_weights behaviour
+// here: the donor fill grafts a full-weight nearest-neighbor row into a
+// fracarea-normalized conservative matrix. So COAWST's check_weights behavior
 // is opt-in and says so loudly, and the shipped default is the one the
 // literature supports.
 void
@@ -2205,7 +2205,7 @@ CoasterMBContainer::ResolveDonorFillMode()
     // connect a non-conservative A2O operator back to the flag that caused it.
     amrex::Print()
         << "[driver] WARNING remap: driver.remap_donor_fill=coawst grafts a full-weight "
-        << "nearest-neighbour stencil into the fracarea-normalized conservative matrix for "
+        << "nearest-neighbor stencil into the fracarea-normalized conservative matrix for "
         << "every wet destination cell with no source overlap. This reproduces COAWST's "
         << "check_weights (Lib/SCRIP_COAWST/scrip.f:343), but no production coupler does it: "
         << "ESMF defaults unmappedaction=ERROR and refuses to combine extrapolation with "
@@ -2769,7 +2769,7 @@ CoasterMBContainer::BuildAtmosToOceanWeights()
     const MultiFab* remora_mskr = HostView(remora_mskr_dev, mskr_copy);
 
     // One set of cell -> rho weights serves every A2O lane: vectors cross as
-    // eastward/northward components at cell centres, like the scalars.
+    // eastward/northward components at cell centers, like the scalars.
     const char* const label = "A2O rho";
 
     // Stencil-capacity accounting: a destination cell that overlaps more than
@@ -3048,7 +3048,7 @@ CoasterMBContainer::BuildAtmosToOceanWeights()
                     // d2 -- and a bare `d2 < best_d2` resolves them by scan
                     // order, which starts at erf_staged_box.smallEnd() and so
                     // moves with the decomposition. ESMF and YAC both break
-                    // nearest-neighbour ties by smallest global ID for exactly
+                    // nearest-neighbor ties by smallest global ID for exactly
                     // this reason; ESMF documents it as "if two points are
                     // equally close, then the point with the smallest sequence
                     // index is arbitrarily used".
@@ -3195,8 +3195,8 @@ CoasterMBContainer::BuildAtmosToOceanWeights()
     if (donor_filled > 0) {
         amrex::Print() << "[driver] remap: " << donor_filled
                        << " wet destination cells had no valid source overlap and were filled from "
-                       << "their nearest non-land source cell (COAWST check_weights behaviour). "
-                       << "These carry a neighbour's atmospheric state rather than their own.\n";
+                       << "their nearest non-land source cell (COAWST check_weights behavior). "
+                       << "These carry a neighbor's atmospheric state rather than their own.\n";
     }
     if (dropped_overlaps > 0) {
         amrex::Print() << "[driver] WARNING BuildRemapWeights: " << dropped_overlaps
@@ -4384,7 +4384,7 @@ CoasterMBContainer::ResolveAtmosToOceanLaneSources ()
             std::string requested = "auto";
             if (pp_lane.query(spec.name, requested) && amrex::toLower(requested) == "remora") {
                 amrex::Abort("driver.atm2ocn_lane_source." + std::string(spec.name) +
-                             " = remora cannot be honoured with driver.atm2ocn_mode = flux: the flux "
+                             " = remora cannot be honored with driver.atm2ocn_mode = flux: the flux "
                              "contract passes every flux lane, " + spec.name + " included, so "
                              "REMORA's own " + spec.name + " forcing is replaced either way. "
                              "Drop the override or use driver.atm2ocn_mode = state.");

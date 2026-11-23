@@ -116,7 +116,7 @@ _check_case("o2a_pack_sst"
   "driver.atm2ocn_mode=state;driver.debug_inject_nan_lane=SST"
   "Non-finite value detected in PackSurfaceState output, lane 'SST'")
 
-# Atmos->ocean: the post-pack guard on the cell-centred state lanes.
+# Atmos->ocean: the post-pack guard on the cell-centered state lanes.
 _check_case("a2o_pack_tair"
   "driver.atm2ocn_mode=state;driver.debug_inject_nan_lane=Tair"
   "Non-finite value detected in PackAtmosphericStates output, lane 'Tair'")
