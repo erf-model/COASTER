@@ -48,6 +48,10 @@ erf.pbl_type          = "YSUNew"
 erf.vert_implicit_fac = 1 1 1
 erf.molec_diff_type   = "None"
 erf.les_type          = "None"
+# WRF diff_6th_opt=2, diff_6th_factor=0.12: 6th-order horizontal filter of the scalars.
+# Without it the run trips the ERF low-temperature abort at ~3470 s, near 14 km.
+# ERF #5246 disabled this option; Submodules/ERF carries a revert of it.
+erf.num_diff_coeff    = 0.12
 erf.use_gravity       = true
 erf.use_coriolis      = true
 erf.coriolis_3d       = true
